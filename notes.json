@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Exploring the Wonders of the Universe",
+    "image": "https://example.com/images/universe.jpg",
+    "description": "A deep dive into the mysteries of the cosmos and the latest discoveries in astronomy.",
+    "content": "The universe is vast and full of wonders. From the formation of stars to the existence of black holes, there is so much to explore. In this article, we will discuss the latest findings in the field of astronomy, including the discovery of exoplanets and the study of dark matter.",
+    "category": "Science",
+    "tags": ["astronomy", "universe", "space", "science", "discovery"]
+  },
+  {
+    "title": "The Art of Cooking: Mastering Culinary Skills",
+    "image": "https://example.com/images/cooking.jpg",
+    "description": "A comprehensive guide to improving your cooking skills and exploring new recipes.",
+    "content": "Cooking is both an art and a science. In this guide, we will cover essential cooking techniques, tips for meal preparation, and a variety of recipes that cater to different tastes and dietary needs. Whether you're a beginner or an experienced cook, there's always something new to learn in the kitchen.",
+    "category": "Culinary",
+    "tags": ["cooking", "recipes", "culinary skills", "food", "kitchen"]
+  }
+]
