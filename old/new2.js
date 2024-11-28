@@ -27,7 +27,8 @@ javascript:(function() {
     
     const penButton = document.createElement('button');
     penButton.innerText = 'Pen';
-    penButton.onclick = enableElementSelection; // Function to enable element selection
+    let penModeActive = false; // Track pen mode state
+    penButton.onclick = toggleElementSelection; // Function to toggle element selection
     modal.appendChild(penButton);
     
     const autoButton = document.createElement('button');
@@ -98,11 +99,11 @@ javascript:(function() {
         } else {
             imagePreview.style.display = 'none'; // Hide the image if no URL
         }
-       }
+    }
 
     function showContent() {
         const title = titleInput.querySelector('input').value;
-        const url = urlInput.querySelector('input').value; // Get URL
+               const url = urlInput.querySelector('input').value; // Get URL
         const image = imageInput.querySelector('input').value;
         const description = descriptionInput.querySelector('textarea').value;
         const content = contentInput.querySelector('textarea').value;
@@ -119,15 +120,22 @@ javascript:(function() {
     function closeModal() {
         modal.style.display = 'none';
         // Remove event listeners if needed
-        document.removeEventListener('click', handleElementClick);
+        if (penModeActive) {
+            document.removeEventListener('click', handleElementClick);
+            penModeActive = false; // Reset pen mode state
+            penButton.innerText = 'Pen'; // Reset button text
+        }
     }
 
-    function enableElementSelection() {
-        // Clear previous content
-        contentInput.querySelector('textarea').value = '';
-        
-        // Add event listener to capture clicks on the document
-        document.addEventListener('click', handleElementClick);
+    function toggleElementSelection() {
+        penModeActive = !penModeActive; // Toggle pen mode state
+        if (penModeActive) {
+            penButton.innerText = 'Stop Pen'; // Change button text
+            document.addEventListener('click', handleElementClick); // Enable element selection
+        } else {
+            penButton.innerText = 'Pen'; // Change button text back
+            document.removeEventListener('click', handleElementClick); // Disable element selection
+        }
     }
 
     function handleElementClick(event) {
@@ -167,14 +175,17 @@ javascript:(function() {
                     contentArray.push('<a href="' + link.href + '" target="_blank" style="color: blue; text-decoration: underline;">' + link.innerText + '</a>'); // Add link with styling
                 }
             }
-            // Join the content into a single string
-            contentInput.querySelector('textarea').value = contentArray.join('\n');
+            
+            // Append the new content to the existing content in the textarea
+            const contentTextArea = contentInput.querySelector('textarea');
+            const existingContent = contentTextArea.value.trim(); // Get existing content
+            const newContent = contentArray.join('\n'); // Join new content
+            
+            // If there's existing content, add a separator (like a newline) before appending
+            contentTextArea.value = existingContent ? existingContent + '\n' + newContent : newContent;
         }
-        // Remove the event listener after capturing the content
-        document.removeEventListener('click', handleElementClick);
+        // Do not remove the event listener here, allowing for multiple captures
     }
-
- 
 
     // Append the modal to the body and display it
     document.body.appendChild(modal);
