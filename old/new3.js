@@ -141,44 +141,59 @@
             contentTextArea.value = existingContent ? existingContent + "\n" + extractedContent.join("\n") : extractedContent.join("\n")
         }
     }
-    async function sendDataToGitHub(data) {
-        const token = "TOKEN", repoOwner = "YuushaExa", repoName = "notes", filePath = "notes.json", branch = "main", apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-        try {
-            const response = await fetch(apiUrl + `?ref=${branch}`, {
-                headers: {
-                    Authorization: `token ${token}`
-                }
-            });
-            if (!response.ok)
-                throw new Error("Network response was not ok");
-            const fileData = await response.json(), currentContent = JSON.parse(atob(fileData.content));
-            currentContent.push(data);
-            const textEncoder = new TextEncoder, utf8EncodedData = textEncoder.encode(JSON.stringify(currentContent, null, 2)), base64EncodedString = btoa(String.fromCharCode(...utf8EncodedData));
-            const updateResponse = await fetch(apiUrl, {
-                method: "PUT",
-                headers: {
-                    Authorization: `token ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: "Add new note",
-                    content: base64EncodedString,
-                    sha: fileData.sha,
-                    branch: branch
-                })
-            });
-            if (updateResponse.ok)
-                alert("Data sent to GitHub successfully!");
-            else {
-                const errorData = await updateResponse.json();
-                console.error("Error sending data to GitHub:", errorData),
-                alert("Error sending data to GitHub. Check console for details.")
+async function sendDataToGitHub(data) {
+    const token = "TOKEN", repoOwner = "YuushaExa", repoName = "notes", filePath = "notes.json", branch = "main", apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+
+    try {
+        const response = await fetch(apiUrl + `?ref=${branch}`, {
+            headers: {
+                Authorization: `token ${token}`
             }
-        } catch (error) {
-            console.error("Error:", error),
-            alert("An error occurred. Check console for details.")
+        });
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
         }
+
+        const fileData = await response.json();
+
+        // Decode the existing content using a more reliable method
+        const currentContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
+
+        currentContent.push(data);
+
+        // Encode the updated content using a safer method for non-Latin characters
+        const textEncoder = new TextEncoder();
+        const utf8EncodedData = textEncoder.encode(JSON.stringify(currentContent, null, 2));
+
+        // Use a Uint8Array to Base64 conversion that handles all characters correctly:
+        const base64EncodedString = btoa(Uint8Array.from(utf8EncodedData).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+
+        const updateResponse = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+                Authorization: `token ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: "Add new note",
+                content: base64EncodedString,
+                sha: fileData.sha,
+                branch: branch
+            })
+        });
+
+        if (updateResponse.ok) {
+            alert("Data sent to GitHub successfully!");
+        } else {
+            const errorData = await updateResponse.json();
+            console.error("Error sending data to GitHub:", errorData);
+            alert("Error sending data to GitHub. Check console for details.");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Check console for details.");
     }
+}
     container.appendChild(titleField),
     container.appendChild(urlField),
     container.appendChild(imageUrlField),
