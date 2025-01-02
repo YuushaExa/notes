@@ -29,6 +29,30 @@
   imagePreview.style.display = "none";
   container.appendChild(imagePreview);
 
+  // Create button container for horizontal alignment
+  let buttonContainer = document.createElement("div");
+  buttonContainer.style.display = "flex";
+  buttonContainer.style.justifyContent = "space-between"; 
+  container.appendChild(buttonContainer);
+
+  // Create a "Send" button
+  let sendButton = document.createElement("button");
+  sendButton.innerText = "Send";
+  sendButton.onclick = function() {
+    let data = {
+      title: titleField.querySelector("input").value,
+      url: urlField.querySelector("input").value,
+      image: imageUrlField.querySelector("input").value,
+      description: descriptionField.querySelector("textarea").value,
+      content: contentField.querySelector("textarea").value,
+      category: categoryField.querySelector("input").value,
+      tags: tagsField.querySelector("input").value.split(",").map(tag => tag.trim())
+    };
+
+    sendDataToGitHub(data);
+  };
+  buttonContainer.appendChild(sendButton);
+
   // Create a "Pen" button
   let penButton = document.createElement("button");
   penButton.innerText = "Pen";
@@ -43,7 +67,7 @@
       document.removeEventListener("click", handleClick);
     }
   };
-  container.appendChild(penButton);
+  buttonContainer.appendChild(penButton);
 
   // Create an "Auto" button
   let autoButton = document.createElement("button");
@@ -96,7 +120,7 @@
       imagePreview.style.display = "none";
     }
   };
-  container.appendChild(autoButton);
+  buttonContainer.appendChild(autoButton);
 
   // Create a "Show" button
   let showButton = document.createElement("button");
@@ -123,7 +147,7 @@
     newWindow.document.write("</body></html>");
     newWindow.document.close();
   };
-  container.appendChild(showButton);
+  buttonContainer.appendChild(showButton);
 
   // Create a "Close" button
   let closeButton = document.createElement("button");
@@ -136,7 +160,7 @@
       penButton.innerText = "Pen";
     }
   };
-  container.appendChild(closeButton);
+  buttonContainer.appendChild(closeButton);
 
   // Helper function to create input fields
   function createField(label, type = "text") {
@@ -217,6 +241,63 @@
   // Show the container initially
   document.body.appendChild(container);
   container.style.display = "block";
+
+// GitHub API interaction (Modified to handle Unicode characters)
+async function sendDataToGitHub(data) {
+  const token = "githTOKEN"; // Replace with your actual token
+  const repoOwner = "YuushaExa"; // Replace with your GitHub username
+  const repoName = "notes"; // Replace with your repository name
+  const filePath = "notes.json"; // The path to your notes file
+  const branch = "main"; // The branch you're working on
+  const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+
+  try {
+    // Get the current file content and SHA
+    const response = await fetch(apiUrl + `?ref=${branch}`, {
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+    const fileData = await response.json();
+    const currentContent = JSON.parse(atob(fileData.content));
+
+    // Add new data to the array
+    currentContent.push(data);
+
+    // Encode the JSON string to UTF-8
+    const textEncoder = new TextEncoder();
+    const utf8EncodedData = textEncoder.encode(JSON.stringify(currentContent, null, 2));
+
+    // Convert the UTF-8 encoded byte array to a base64 string
+    const base64EncodedString = btoa(String.fromCharCode(...utf8EncodedData));
+
+    // Update the file
+    const updateResponse = await fetch(apiUrl, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: "Add new note",
+        content: base64EncodedString,
+        sha: fileData.sha,
+        branch: branch,
+      }),
+    });
+
+    if (updateResponse.ok) {
+      alert("Data sent to GitHub successfully!");
+    } else {
+      const errorData = await updateResponse.json();
+      console.error("Error sending data to GitHub:", errorData);
+      alert("Error sending data to GitHub. Check console for details.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An error occurred. Check console for details.");
+  }
+}
 
   document.body.appendChild(container);
   container.style.display = "block";
