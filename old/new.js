@@ -56,10 +56,39 @@
         ogData[tag.getAttribute("property").replace("og:", "")] = tag.getAttribute("content");
       }
     }
-    titleField.querySelector("input").value = ogData.title || "";
+
+    let title = ogData.title;
+    if (!title) {
+      let titleTag = document.querySelector("title");
+      title = titleTag ? titleTag.innerText : "";
+    }
+    if (!title) {
+      let h1Tag = document.querySelector("h1");
+      title = h1Tag ? h1Tag.innerText : "";
+    }
+    if (!title) {
+      let h2Tag = document.querySelector("h2");
+      title = h2Tag ? h2Tag.innerText : "";
+    }
+
+    // Get image from og:image, <body>, or first <img>
+    let imageUrl = ogData.image;
+    if (!imageUrl) {
+      let bodyTag = document.querySelector("body");
+      if (bodyTag) {
+          let bodyStyle = getComputedStyle(bodyTag);
+          imageUrl = bodyStyle.backgroundImage.slice(4, -1).replace(/['"]/g, ""); 
+      }
+    }
+    if (!imageUrl) {
+      let firstImage = document.querySelector("img");
+      imageUrl = firstImage ? firstImage.src : "";
+    }
+    
+    titleField.querySelector("input").value = title || "";
     urlField.querySelector("input").value = window.location.href;
     descriptionField.querySelector("textarea").value = ogData.description || "";
-    imageUrlField.querySelector("input").value = ogData.image || "";
+    imageUrlField.querySelector("input").value = imageUrl || "";
     if (ogData.image) {
       imagePreview.src = ogData.image;
       imagePreview.style.display = "block";
