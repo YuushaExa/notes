@@ -1,194 +1,297 @@
-javascript:(function() {
-    const modal = document.createElement('div');
-    modal.style.position = 'fixed';
-    modal.style.top = '10px';
-    modal.style.right = '10px';
-    modal.style.width = '300px';
-    modal.style.height = 'auto';
-    modal.style.backgroundColor = 'white';
-    modal.style.border = '1px solid #ccc';
-    modal.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-    modal.style.zIndex = '10001';
-    modal.style.padding = '10px';
-    modal.style.display = 'none';
-    document.body.appendChild(modal);
-    
-    const titleInput = createInput('Title');
-    const urlInput = createInput('URL'); // New URL input
-    const imageInput = createInput('Image URL');
-    const descriptionInput = createInput('Description', 'textarea');
-    const contentInput = createInput('Content', 'textarea');
-    const categoryInput = createInput('Category');
-    const tagsInput = createInput('Tags (comma-separated)');
-    const imagePreview = document.createElement('img'); // Image preview element
-    imagePreview.style.width = '80%'; // Set width to 80%
-    imagePreview.style.display = 'none'; // Initially hidden
-    modal.appendChild(imagePreview);
-    
-    const penButton = document.createElement('button');
-    penButton.innerText = 'Pen';
-    let penModeActive = false; // Track pen mode state
-    penButton.onclick = toggleElementSelection; // Function to toggle element selection
-    modal.appendChild(penButton);
-    
-    const autoButton = document.createElement('button');
-    autoButton.innerText = 'Auto';
-    autoButton.onclick = fillFieldsWithMeta; // Function to fill fields
-    modal.appendChild(autoButton);
-    
-    const showButton = document.createElement('button');
-    showButton.innerText = 'Show';
-    showButton.onclick = showContent;
-    modal.appendChild(showButton);
-    
-    const closeButton = document.createElement('button');
-    closeButton.innerText = 'Close';
-    closeButton.onclick = closeModal;
-    modal.appendChild(closeButton);
-    
-    modal.appendChild(titleInput);
-    modal.appendChild(urlInput); // Append URL input
-    modal.appendChild(imageInput);
-    modal.appendChild(descriptionInput);
-    modal.appendChild(contentInput);
-    modal.appendChild(categoryInput);
-    modal.appendChild(tagsInput);
-    
-    // Event listener to update image preview when the image URL changes
-    imageInput.querySelector('input').addEventListener('input', function() {
-        const imageUrl = this.value;
-        if (imageUrl) {
-            imagePreview.src = imageUrl;
-            imagePreview.style.display = 'block'; // Show the image
-        } else {
-            imagePreview.style.display = 'none'; // Hide the image if no URL
-        }
-    });
-    
-    document.body.appendChild(modal);
-    modal.style.display = 'block';
+!function() {
+  // Create the main container div
+  let container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.top = "10px";
+  container.style.right = "10px";
+  container.style.width = "300px";
+  container.style.height = "auto";
+  container.style.backgroundColor = "white";
+  container.style.border = "1px solid #ccc";
+  container.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+  container.style.zIndex = "10001";
+  container.style.padding = "10px";
+  container.style.display = "none";
+  document.body.appendChild(container);
 
-    function createInput(label, type = 'text') {
-        const container = document.createElement('div');
-        const inputLabel = document.createElement('label');
-        inputLabel.innerText = label;
-        const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
-        input.type = type;
-        container.appendChild(inputLabel);
-        container.appendChild(input);
-        return container;
+  // Create input fields for title, URL, image URL, description, content, category, and tags
+  let titleField = createField("Title");
+  let urlField = createField("URL");
+  let imageUrlField = createField("Image URL");
+  let descriptionField = createField("Description", "textarea");
+  let contentField = createField("Content", "textarea");
+  let categoryField = createField("Category");
+  let tagsField = createField("Tags (comma-separated)");
+
+  // Create an image preview element
+  let imagePreview = document.createElement("img");
+  imagePreview.style.width = "80%";
+  imagePreview.style.display = "none";
+  container.appendChild(imagePreview);
+
+  // Create button container for horizontal alignment
+  let buttonContainer = document.createElement("div");
+  buttonContainer.style.display = "flex";
+  buttonContainer.style.justifyContent = "space-between"; 
+  container.appendChild(buttonContainer);
+
+  // Create a "Send" button
+  let sendButton = document.createElement("button");
+  sendButton.innerText = "Send";
+  sendButton.onclick = function() {
+    let data = {
+      title: titleField.querySelector("input").value,
+      url: urlField.querySelector("input").value,
+      image: imageUrlField.querySelector("input").value,
+      description: descriptionField.querySelector("textarea").value,
+      content: contentField.querySelector("textarea").value,
+      category: categoryField.querySelector("input").value,
+      tags: tagsField.querySelector("input").value.split(",").map(tag => tag.trim())
+    };
+
+    sendDataToGitHub(data);
+  };
+  buttonContainer.appendChild(sendButton);
+
+  // Create a "Pen" button
+  let penButton = document.createElement("button");
+  penButton.innerText = "Pen";
+  let isPenActive = false;
+  penButton.onclick = function() {
+    isPenActive = !isPenActive;
+    if (isPenActive) {
+      penButton.innerText = "Stop Pen";
+      document.addEventListener("click", handleClick);
+    } else {
+      penButton.innerText = "Pen";
+      document.removeEventListener("click", handleClick);
+    }
+  };
+  buttonContainer.appendChild(penButton);
+
+  // Create an "Auto" button
+  let autoButton = document.createElement("button");
+  autoButton.innerText = "Auto";
+  autoButton.onclick = function() {
+    let metaTags = document.getElementsByTagName("meta");
+    let ogData = {};
+    for (let tag of metaTags) {
+      if (tag.getAttribute("property") && tag.getAttribute("property").startsWith("og:")) {
+        ogData[tag.getAttribute("property").replace("og:", "")] = tag.getAttribute("content");
+      }
     }
 
-    function fillFieldsWithMeta() {
-        const metaTags = document.getElementsByTagName('meta');
-        let ogData = {};
-        for (let meta of metaTags) {
-            if (meta.getAttribute('property') && meta.getAttribute('property').startsWith('og:')) {
-                ogData[meta.getAttribute('property').replace('og:', '')] = meta.getAttribute('content');
-            }
-        }
-        // Fill the input fields with the retrieved OG data
-        titleInput.querySelector('input').value = ogData.title || '';
-        urlInput.querySelector('input').value = window.location.href; // Set current page URL
-        descriptionInput.querySelector('textarea').value = ogData.description || '';
-        imageInput.querySelector('input').value = ogData.image || '';
-        // Update the image preview if an image URL is available
-        if (ogData.image) {
-            imagePreview.src = ogData.image;
-            imagePreview.style.display = 'block'; // Show the image
-        } else {
-            imagePreview.style.display = 'none'; // Hide the image if no URL
-        }
+    let title = ogData.title;
+    if (!title) {
+      let titleTag = document.querySelector("title");
+      title = titleTag ? titleTag.innerText : "";
+    }
+    if (!title) {
+      let h1Tag = document.querySelector("h1");
+      title = h1Tag ? h1Tag.innerText : "";
+    }
+    if (!title) {
+      let h2Tag = document.querySelector("h2");
+      title = h2Tag ? h2Tag.innerText : "";
     }
 
-    function showContent() {
-        const title = titleInput.querySelector('input').value;
-               const url = urlInput.querySelector('input').value; // Get URL
-        const image = imageInput.querySelector('input').value;
-        const description = descriptionInput.querySelector('textarea').value;
-        const content = contentInput.querySelector('textarea').value;
-        const category = categoryInput.querySelector('input').value;
-        const tags = tagsInput.querySelector('input').value.split(',').map(tag => tag.trim());
-        
-        const jsonWindow = window.open('', '_blank');
-        jsonWindow.document.write('<html><head><title>Selected Content</title></head><body>');
-        jsonWindow.document.write('<pre>' + JSON.stringify({ title, url, image, description, content, category, tags }, null, 2) + '</pre>');
-        jsonWindow.document.write('</body></html>');
-        jsonWindow.document.close();
+    // Get image from og:image, <body>, or first <img>
+    let imageUrl = ogData.image;
+    if (!imageUrl) {
+      let bodyTag = document.querySelector("body");
+      if (bodyTag) {
+          let bodyStyle = getComputedStyle(bodyTag);
+          imageUrl = bodyStyle.backgroundImage.slice(4, -1).replace(/['"]/g, ""); 
+      }
+    }
+    if (!imageUrl) {
+      let firstImage = document.querySelector("img");
+      imageUrl = firstImage ? firstImage.src : "";
+    }
+    
+    titleField.querySelector("input").value = title || "";
+    urlField.querySelector("input").value = window.location.href;
+    descriptionField.querySelector("textarea").value = ogData.description || "";
+    imageUrlField.querySelector("input").value = imageUrl || "";
+    if (ogData.image) {
+      imagePreview.src = ogData.image;
+      imagePreview.style.display = "block";
+    } else {
+      imagePreview.style.display = "none";
+    }
+  };
+  buttonContainer.appendChild(autoButton);
+
+  // Create a "Show" button
+  let showButton = document.createElement("button");
+  showButton.innerText = "Show";
+  showButton.onclick = function() {
+    let title = titleField.querySelector("input").value;
+    let url = urlField.querySelector("input").value;
+    let imageUrl = imageUrlField.querySelector("input").value;
+    let description = descriptionField.querySelector("textarea").value;
+    let content = contentField.querySelector("textarea").value;
+    let category = categoryField.querySelector("input").value;
+    let tags = tagsField.querySelector("input").value.split(",").map(tag => tag.trim());
+    let newWindow = window.open("", "_blank");
+    newWindow.document.write("<html><head><title>Selected Content</title></head><body>");
+    newWindow.document.write("<pre>" + JSON.stringify({
+      title: title,
+      url: url,
+      image: imageUrl,
+      description: description,
+      content: content,
+      category: category,
+      tags: tags
+    }, null, 2) + "</pre>");
+    newWindow.document.write("</body></html>");
+    newWindow.document.close();
+  };
+  buttonContainer.appendChild(showButton);
+
+  // Create a "Close" button
+  let closeButton = document.createElement("button");
+  closeButton.innerText = "Close";
+  closeButton.onclick = function() {
+    container.style.display = "none";
+    if (isPenActive) {
+      document.removeEventListener("click", handleClick);
+      isPenActive = false;
+      penButton.innerText = "Pen";
+    }
+  };
+  buttonContainer.appendChild(closeButton);
+
+  // Helper function to create input fields
+  function createField(label, type = "text") {
+    let fieldContainer = document.createElement("div");
+    let labelElement = document.createElement("label");
+    labelElement.innerText = label;
+    let inputElement = document.createElement(type === "textarea" ? "textarea" : "input");
+    inputElement.type = type;
+    fieldContainer.appendChild(labelElement);
+    fieldContainer.appendChild(inputElement);
+    return fieldContainer;
+  }
+
+  // Function to handle clicks when "Pen" is active
+  function handleClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Check if click event target is a button inside the panel,
+    // if it is, return and dont add text to content field.
+    let buttons = container.getElementsByTagName("button");
+    for (let button of buttons) {
+      if (button === event.target) {
+        return;
+      }
     }
 
-    function closeModal() {
-        modal.style.display = 'none';
-        // Remove event listeners if needed
-        if (penModeActive) {
-            document.removeEventListener('click', handleElementClick);
-            penModeActive = false; // Reset pen mode state
-            penButton.innerText = 'Pen'; // Reset button text
+    // Check if the clicked element is inside the main div
+    let clickedDiv = event.target.closest("div");
+    if (clickedDiv) {
+      let extractedContent = [];
+      let textContent = clickedDiv.innerText.trim();
+      if (textContent) {
+        extractedContent.push("<p>" + textContent + "</p>");
+      }
+
+      let images = clickedDiv.getElementsByTagName("img");
+      for (let img of images) {
+        if (img.src) {
+          extractedContent.push('<img src="' + img.src + '" alt="Image" style="max-width: 100%; height: auto;" />');
         }
+      }
+
+      let links = clickedDiv.getElementsByTagName("a");
+      for (let link of links) {
+        if (link.href) {
+          extractedContent.push('<a href="' + link.href + '" target="_blank" style="color: blue; text-decoration: underline;">' + link.innerText + "</a>");
+        }
+      }
+
+      let contentTextArea = contentField.querySelector("textarea");
+      let existingContent = contentTextArea.value.trim();
+      let newContent = extractedContent.join("\n");
+      contentTextArea.value = existingContent ? existingContent + "\n" + newContent : newContent;
     }
+  }
 
-    function toggleElementSelection() {
-        penModeActive = !penModeActive; // Toggle pen mode state
-        if (penModeActive) {
-            penButton.innerText = 'Stop Pen'; // Change button text
-            document.addEventListener('click', handleElementClick); // Enable element selection
-        } else {
-            penButton.innerText = 'Pen'; // Change button text back
-            document.removeEventListener('click', handleElementClick); // Disable element selection
-        }
+  // Append all fields to the container
+  container.appendChild(titleField);
+  container.appendChild(urlField);
+  container.appendChild(imageUrlField);
+  container.appendChild(descriptionField);
+  container.appendChild(contentField);
+  container.appendChild(categoryField);
+  container.appendChild(tagsField);
+
+  // Update image preview when image URL changes
+  imageUrlField.querySelector("input").addEventListener("input", function() {
+    let imageUrl = this.value;
+    if (imageUrl) {
+      imagePreview.src = imageUrl;
+      imagePreview.style.display = "block";
+    } else {
+      imagePreview.style.display = "none";
     }
+  });
 
-    function handleElementClick(event) {
-        event.preventDefault(); // Prevent default action
-        event.stopPropagation(); // Stop the event from bubbling up
-        
-        // Check if the clicked element is a button in the modal
-        const modalButtons = modal.getElementsByTagName('button');
-        for (let button of modalButtons) {
-            if (button === event.target) {
-                return; // Do not capture if the clicked element is a modal button
-            }
-        }
-        
-        // Get the clicked element
-        const selectedElement = event.target.closest('div'); // Ensure we only capture divs
-        if (selectedElement) {
-            // Initialize an array to hold the content
-            const contentArray = [];
-            // Capture text content
-            const textContent = selectedElement.innerText.trim();
-            if (textContent) {
-                contentArray.push('<p>' + textContent + '</p>'); // Wrap text in paragraph tags
-            }
-            // Capture image sources
-            const images = selectedElement.getElementsByTagName('img');
-            for (let img of images) {
-                if (img.src) {
-                    contentArray.push('<img src="' + img.src + '" alt="Image" style="max-width: 100%; height: auto;" />'); // Add image with styling
-                }
-            }
-            // Capture links
-            const links = selectedElement.getElementsByTagName('a');
-            for (let link of links) {
-                if (link.href) {
-                    // Render YouTube links as regular links
-                    contentArray.push('<a href="' + link.href + '" target="_blank" style="color: blue; text-decoration: underline;">' + link.innerText + '</a>'); // Add link with styling
-                }
-            }
-            
-            // Append the new content to the existing content in the textarea
-            const contentTextArea = contentInput.querySelector('textarea');
-            const existingContent = contentTextArea.value.trim(); // Get existing content
-            const newContent = contentArray.join('\n'); // Join new content
-            
-            // If there's existing content, add a separator (like a newline) before appending
-            contentTextArea.value = existingContent ? existingContent + '\n' + newContent : newContent;
-        }
-        // Do not remove the event listener here, allowing for multiple captures
+  // Show the container initially
+  document.body.appendChild(container);
+  container.style.display = "block";
+
+  // GitHub API interaction
+  async function sendDataToGitHub(data) {
+    const token = "githSECCODE"; // Replace with your actual token
+    const repoOwner = "YuushaExa";
+    const repoName = "notes";
+    const filePath = "notes.json";
+    const branch = "main";
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+
+    try {
+      // Get the current file content and SHA
+      const response = await fetch(apiUrl + `?ref=${branch}`, {
+        headers: {
+          Authorization: `token ${token}`,
+        },
+      });
+      const fileData = await response.json();
+      const currentContent = JSON.parse(atob(fileData.content));
+
+      // Add new data to the array
+      currentContent.push(data);
+
+      // Update the file
+      const updateResponse = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "Add new note",
+          content: btoa(JSON.stringify(currentContent, null, 2)),
+          sha: fileData.sha,
+          branch: branch,
+        }),
+      });
+
+      if (updateResponse.ok) {
+        alert("Data sent to GitHub successfully!");
+      } else {
+        const errorData = await updateResponse.json();
+        console.error("Error sending data to GitHub:", errorData);
+        alert("Error sending data to GitHub. Check console for details.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Check console for details.");
     }
+  }
 
-    // Append the modal to the body and display it
-    document.body.appendChild(modal);
-    modal.style.display = 'block';
-})();
-
+  document.body.appendChild(container);
+  container.style.display = "block";
+}();
