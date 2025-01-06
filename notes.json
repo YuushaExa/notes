@@ -247,5 +247,22 @@
       "Supernatural"
     ],
     "genre": "Horror"
+  },
+  {
+    "title": "JavaScript Minifier & Compressor | Toptal®",
+    "url": "https://www.toptal.com/developers/javascript-minifier",
+    "image": "https://www.toptal.com/developers/javascript-minifierog-image.png",
+    "description": "Use our JavaScript Minifier & Compressor tool to reduce JavaScript code size and make your website load faster. Get started for free now.",
+    "content": "",
+    "category": "Web Development Tools",
+    "tags": [
+      "JavaScript",
+      "Minifier",
+      "Compressor",
+      "Optimization",
+      "Web Development",
+      "Performance"
+    ],
+    "genre": "Tool"
   }
 ]
