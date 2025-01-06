@@ -232,12 +232,8 @@ function createField(label, type = "text") {
     buttonContainer.appendChild(showButton);
     let closeButton = document.createElement("button");
     closeButton.innerText = "Close";
-    closeButton.onclick = function () {
-        container.style.display = "none";
-        isPenActive &&
-            (document.removeEventListener("click", handleClick),
-                (isPenActive = !1),
-                (penButton.innerText = "Pen"));
+closeButton.onclick = function () {
+        container.remove(); 
     };
     buttonContainer.appendChild(closeButton);
 
