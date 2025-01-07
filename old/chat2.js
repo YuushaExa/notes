@@ -53,9 +53,8 @@ function createField(label, type = "text") {
     // Chat History (Initially Empty)
     let chatHistory = [];
 
-    // Function to call your Node.js server
     async function getGeminiData(prompt) {
-        const apiUrl = `http://localhost:3000/api/generate`; // Your server's endpoint
+        const apiUrl = `https://chatai-flame-eta.vercel.app/api/generate`; 
 
         try {
             // Add user prompt to chat history
