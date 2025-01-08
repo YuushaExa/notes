@@ -343,11 +343,13 @@
     }
 
     .model-message {
-      word-break: break-word;
-      border: 1px solid rgb(0, 123, 255);
-      margin-right: 20px;
-      padding: 5px;
-      border-radius: 5px;
+        padding: 5px;
+    background: #ddd;
+    border: 1px solid #d2d2d266;
+    border-radius: 15px;
+    position: relative;
+    margin: 5px;
+    overflow: visible;
     }
 
     .input-list-container {
