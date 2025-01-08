@@ -210,9 +210,10 @@
       z-index: 10001;
       padding: 15px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.5;
+      line-height: 1.3;
       display: none;
-      color: #111;
+      color: #333;
+      font-size:15px;
     }
 
     .messages-container {
