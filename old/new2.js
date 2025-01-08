@@ -83,74 +83,37 @@ function createField(label, type = "text") {
         return url.startsWith("http://") || url.startsWith("https://");
     }
 
-    // Gemini API Key (Replace with your actual key)
-    const geminiApiKey = "TOKEN"; // Replace with a secure method!
 
-    // Function to call the Gemini API
-    async function getGeminiData(title) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`;
+// Function to call your backend API
+async function getGeminiData(title) {
+    const apiUrl = "https://chatai-flame-eta.vercel.app/api/extract-info"; // Your new endpoint
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: `Based on the title "${title}", provide the following: Genre, Tags (comma-separated), and Category. Format your response as JSON with the keys "genre", "tags", and "category".`,
-                                },
-                            ],
-                        },
-                    ],
-                }),
-            });
+    try {
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title: title }), // Send only the title
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error from Gemini API:", errorData);
-                alert("Error getting data from Gemini. Check console for details.");
-                return null;
-            }
-
-            const data = await response.json();
-            console.log("Gemini API Response:", data); // Log the full response for debugging
-
-            // Extract text from the response
-            const generatedText = data.candidates[0]?.content?.parts[0]?.text;
-
-            if (generatedText) {
-                try {
-                    // Extract JSON from Markdown code block (if present)
-                    let jsonString = generatedText;
-                    const regex = /```json\s*([\s\S]*?)\s*```/; // Regular expression to find JSON in code block
-                    const match = generatedText.match(regex);
-
-                    if (match && match[1]) {
-                        jsonString = match[1]; // Extracted JSON string
-                    }
-
-                    const parsedData = JSON.parse(jsonString);
-                    return parsedData;
-                } catch (error) {
-                    console.error("Error parsing Gemini response:", error);
-                    alert("Error parsing Gemini response. Check console for details.");
-                    return null;
-                }
-            } else {
-                console.error("Gemini response did not contain expected text format.");
-                alert("Gemini response did not contain expected text format.");
-                return null;
-            }
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            alert("An error occurred while calling Gemini API. Check console for details.");
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error from your API:", errorData);
+            alert("Error getting data from your API. Check console for details.");
             return null;
         }
+
+        const data = await response.json();
+        console.log("Your API Response:", data); // Log the response
+        return data; // The parsed JSON data: { genre, tags, category }
+
+    } catch (error) {
+        console.error("Error calling your API:", error);
+        alert("An error occurred while calling your API. Check console for details.");
+        return null;
     }
+}
 
     autoButton.innerText = "Auto";
     autoButton.onclick = async function () {
@@ -272,77 +235,31 @@ closeButton.onclick = function () {
                 : extractedContent.join("\n");
         }
     }
-    async function sendDataToGitHub(data) {
-        const token =
-            "TOKEN", // Replace with your GitHub PAT
-            repoOwner = "YuushaExa", // Replace with your GitHub username
-            repoName = "notes", // Replace with your repository name
-            filePath = "notes.json",
-            branch = "main",
-            apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+  async function sendDataToGitHub(data) {
+    const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-to-github"; // Your new endpoint
 
-        try {
-            const response = await fetch(apiUrl + `?ref=${branch}`, {
-                headers: {
-                    Authorization: `token ${token}`,
-                },
-            });
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
+    try {
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
 
-            const fileData = await response.json();
-
-            // Decode the existing content
-            const currentContent = JSON.parse(
-                decodeURIComponent(escape(atob(fileData.content)))
-            );
-
-            currentContent.push(data);
-
-            // Encode the updated content
-            const textEncoder = new TextEncoder();
-            const utf8EncodedData = textEncoder.encode(
-                JSON.stringify(currentContent, null, 2)
-            );
-            const base64EncodedString = btoa(
-                Uint8Array.from(utf8EncodedData).reduce(
-                    (data, byte) => data + String.fromCharCode(byte),
-                    ""
-                )
-            );
-
-            const updateResponse = await fetch(apiUrl, {
-                method: "PUT",
-                headers: {
-                    Authorization: `token ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    message: "Add new note",
-                    content: base64EncodedString,
-                    sha: fileData.sha,
-                    branch: branch,
-                }),
-            });
-
-            if (updateResponse.ok) {
-                alert("Data sent to GitHub successfully!");
-            } else {
-                const errorData = await updateResponse.json();
-                console.error("Error sending data to GitHub:", errorData);
-                alert(
-                    "Error sending data to GitHub. Status: " +
-                    updateResponse.status +
-                    ". Message: " +
-                    errorData.message
-                );
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("An error occurred. Check console for details.");
+        if (response.ok) {
+            const responseData = await response.json();
+            alert(responseData.message); // "Data sent to GitHub successfully!"
+        } else {
+            const errorData = await response.json();
+            console.error("Error sending data to GitHub:", errorData);
+            alert("Error sending data to GitHub. Check console for details.");
         }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Check console for details.");
     }
+}
 
     // Add fields to the container in your desired order:
     container.appendChild(titleField);
