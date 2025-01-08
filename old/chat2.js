@@ -202,7 +202,7 @@
       top: 10px;
       right: 10px;
       width: 400px;
-      height: 400px;
+      height: 415px;
       background-color: #f5f5f5;
       border: 1px solid #ddd;
       border-radius: 10px;
@@ -212,6 +212,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       line-height: 1.5;
       display: none;
+      color: #111;
     }
 
     .messages-container {
