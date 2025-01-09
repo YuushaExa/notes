@@ -1,24 +1,20 @@
-(function () {
-  // Create the main container for the chat interface
-  const chatContainer = document.createElement("div");
+javascript:!function(){
+  let chatContainer = document.createElement("div");
   chatContainer.classList.add("chat-container");
 
-  // Create a container for chat messages
-  const messagesContainer = document.createElement("div");
+  let messagesContainer = document.createElement("div");
   messagesContainer.classList.add("messages-container");
   chatContainer.appendChild(messagesContainer);
 
-  // Create a textarea for user input
-  const inputTextArea = document.createElement("textarea");
+  let inputTextArea = document.createElement("textarea");
   inputTextArea.classList.add("input-textarea");
   inputTextArea.placeholder = "Enter your prompt here...";
   chatContainer.appendChild(inputTextArea);
 
-  // Initialize an empty array to store chat history
   let chatHistory = [];
 
-  // Function to format text with Markdown-like syntax (Optimized)
-  function formatText(text) {
+  function formatMessage(messageText) {
+    let formattedText = messageText;
     const replacements = [
       [/\*\*(.*?)\*\*/g, "<strong>$1</strong>"],
       [/\*(.*?)\*/g, "<em>$1</em>"],
@@ -31,172 +27,141 @@
       [/!\[(.*?)\]\((.*?)\)/g, "<img src='$2' alt='$1'>"],
       [/%60%60%60(.*?)%60%60%60/gs, "<pre><code>$1</code></pre>"],
       [/%60(.*?)%60/g, "<code>$1</code>"],
-      [/^(?!<[h|u|o|l|p|i|s|c|a|p]).*(\r?\n\r?\n).*$/gm, "<p>$&</p>"],
+      [/^(?!<[h|u|o|l|p|i|s|c|a|p]).*(\r?\n\r?\n).*$/gm, "<p>$&</p>"]
     ];
 
-    let formattedText = text;
     for (const [regex, replacement] of replacements) {
       formattedText = formattedText.replace(regex, replacement);
     }
 
-    formattedText = formattedText
-      .replace(/(<li>.*<\/li>)/gms, "<ul>$1</ul>") // Wrap lists only once
-      .replace(/(<li>.*<\/li>)/gms, "<ol>$1</ol>") // Wrap lists only once
-      .replace(/\r?\n\r?\n/g, "\n"); // Normalize newlines
+    formattedText = formattedText.replace(/(<li>.*<\/li>)/gms, "<ul>$1</ul>");
+    formattedText = formattedText.replace(/(<li>.*<\/li>)/gms, "<ol>$1</ol>");
+    formattedText = formattedText.replace(/\r?\n\r?\n/g, "\n");
 
     return formattedText;
   }
 
-  // Function to call the server and get a response (Enhanced Error Handling)
-  async function callServer(prompt) {
-    // Add user message to chat history
-    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-    displayChatHistory();
+  async function sendMessage(userPrompt) {
+    chatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+    updateDisplay();
 
     try {
-      // Send request to the server
-      const response = await fetch(
-        "https://chatai-flame-eta.vercel.app/api/generate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ prompt: prompt, chatHistory: chatHistory }),
-        }
-      );
+      const response = await fetch("https://chatai-flame-eta.vercel.app/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: userPrompt, chatHistory: chatHistory })
+      });
 
-      // Handle server errors more gracefully
       if (!response.ok) {
         const errorData = await response.json();
-        const errorMessage =
-          errorData.error || "Unknown error from server.";
-        throw new Error(
-          `Server responded with status ${response.status}: ${errorMessage}`
-        );
+        const errorMessage = errorData.error || "Unknown error from server.";
+        throw new Error(`Server responded with status ${response.status}: ${errorMessage}`);
       }
 
-      // Process server response
-      const data = await response.json();
-      if (data.text) {
-        chatHistory.push({ role: "model", parts: [{ text: data.text }] });
+      const responseData = await response.json();
+      if (responseData.text) {
+        chatHistory.push({ role: "model", parts: [{ text: responseData.text }] });
       } else {
         throw new Error("Server response did not contain expected text format.");
       }
     } catch (error) {
       console.error("Error:", error.message);
-      chatHistory.push({
-        role: "model",
-        parts: [{ text: `Error: ${error.message}` }],
-      });
+      chatHistory.push({ role: "model", parts: [{ text: `Error: ${error.message}` }] });
     } finally {
-      displayChatHistory();
+      updateDisplay();
     }
   }
 
-  // Function to display chat history in the messages container (Optimized)
-  function displayChatHistory() {
+  function updateDisplay() {
     messagesContainer.innerHTML = "";
-    const fragment = document.createDocumentFragment(); // Use a fragment for efficiency
+    const fragment = document.createDocumentFragment();
 
     for (const message of chatHistory) {
-      const formattedText = formatText(message.parts[0].text);
-      const messageElement = document.createElement("div");
-      messageElement.innerHTML = formattedText;
-      messageElement.classList.add(
-        message.role === "user" ? "user-message" : "model-message"
-      );
-      fragment.appendChild(messageElement);
+      const formattedText = formatMessage(message.parts[0].text);
+      const messageDiv = document.createElement("div");
+      messageDiv.innerHTML = formattedText;
+      messageDiv.classList.add(message.role === "user" ? "user-message" : "model-message");
+      fragment.appendChild(messageDiv);
     }
 
     messagesContainer.appendChild(fragment);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  // Create a container for buttons
   const buttonsContainer = document.createElement("div");
   buttonsContainer.classList.add("buttons-container");
   chatContainer.appendChild(buttonsContainer);
 
-  // Create the "Run" button (Enhanced with loading state)
   const runButton = document.createElement("button");
   runButton.classList.add("run-button");
   runButton.innerText = "Run";
-  runButton.onclick = async function () {
-    const prompt = inputTextArea.value.trim();
-    if (prompt === "") {
+  runButton.addEventListener("click", async () => {
+    const userPrompt = inputTextArea.value.trim();
+    if (userPrompt === "") {
       alert("Please enter a prompt.");
       return;
     }
-
-    runButton.disabled = true; // Disable button during request
-    runButton.innerText = "Running..."; // Indicate loading state
-
-    await callServer(prompt);
-
-    runButton.disabled = false; // Re-enable button
-    runButton.innerText = "Run"; // Reset button text
+    runButton.disabled = true;
+    runButton.innerText = "Running...";
+    await sendMessage(userPrompt);
+    runButton.disabled = false;
+    runButton.innerText = "Run";
     inputTextArea.value = "";
-  };
+  });
   buttonsContainer.appendChild(runButton);
 
-  // Create the "Clear" button
   const clearButton = document.createElement("button");
   clearButton.classList.add("clear-button");
   clearButton.innerText = "Clear";
-  clearButton.onclick = function () {
+  clearButton.addEventListener("click", () => {
     chatHistory = [];
-    displayChatHistory();
-  };
+    updateDisplay();
+  });
   buttonsContainer.appendChild(clearButton);
 
-  // Create the "Close" button
   const closeButton = document.createElement("button");
   closeButton.classList.add("close-button");
   closeButton.innerText = "Close";
-  closeButton.onclick = function () {
+  closeButton.addEventListener("click", () => {
     chatContainer.remove();
-  };
+    // Remove the style element when close button is clicked
+    if (styleElement) {
+      styleElement.remove();
+    }
+  });
   buttonsContainer.appendChild(closeButton);
 
-  // Create input list container and insert before "Clear" button
   const inputListContainer = document.createElement("div");
   inputListContainer.classList.add("input-list-container");
   buttonsContainer.insertBefore(inputListContainer, clearButton);
 
-  // Create the input list (select element)
-  const inputList = document.createElement("select");
-  inputList.classList.add("input-list");
-
-  // Pre-made prompt options (Enhanced with more options)
+  const inputListSelect = document.createElement("select");
+  inputListSelect.classList.add("input-list");
   const promptOptions = [
-    { value: "", text: "Select a Prompt" }, // Added a default option
+    { value: "", text: "Select a Prompt" },
     { value: "Fix Grammar - ", text: "Fix Grammar" },
     { value: "What is ", text: "What is" },
     { value: "Top 5 anime", text: "Top 5 anime" },
-    { value: "Explain like I'm 5: ", text: "Explain like I'm 5" }, // New option
-    { value: "Summarize this: ", text: "Summarize this" }, // New option
+    { value: "Explain like I'm 5: ", text: "Explain like I'm 5" },
+    { value: "Summarize this: ", text: "Summarize this" }
   ];
 
-  // Add options to the input list (Optimized with loop)
-  for (const optionData of promptOptions) {
-    const option = document.createElement("option");
-    option.value = optionData.value;
-    option.text = optionData.text;
-    inputList.appendChild(option);
+  for (const option of promptOptions) {
+    const optionElement = document.createElement("option");
+    optionElement.value = option.value;
+    optionElement.text = option.text;
+    inputListSelect.appendChild(optionElement);
   }
 
-  // Add onchange event to input list
-  inputList.onchange = function () {
-    inputTextArea.value = inputList.value;
-  };
+  inputListSelect.addEventListener("change", () => {
+    inputTextArea.value = inputListSelect.value;
+  });
+  inputListContainer.appendChild(inputListSelect);
 
-  // Add input list to its container
-  inputListContainer.appendChild(inputList);
-
-  // Create a style element for custom styles (Consolidated and Optimized)
+  // Create style element
   const styleElement = document.createElement("style");
   styleElement.textContent = `
+    /* Your CSS styles here (unchanged) */
     .chat-container {
       position: fixed;
       top: 10px;
@@ -340,16 +305,16 @@
           word-break: break-word;
         width: max-content;
     padding: 5px;
-    border-radius: 15px;
+    border-radius: 10px;
     background: #ccd3ff;
     }
 
     .model-message {
         padding: 5px;
     background: #fdfefe;
-    border-radius: 15px;
+    border-radius: 10px;
     position: relative;
-    margin: 10px;
+    margin: 10px 0 10px 10px;
     overflow: visible;
     }
 
@@ -365,8 +330,12 @@
     }
   `;
 
-  // Append elements to the document
+  // Append style element to the head
   document.head.appendChild(styleElement);
+
+  // Append chat container to the body
   document.body.appendChild(chatContainer);
+
+  // Display the chat interface
   chatContainer.style.display = "block";
-})();
+}();
