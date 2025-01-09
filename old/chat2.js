@@ -201,14 +201,14 @@
       position: fixed;
       top: 10px;
       right: 10px;
-      width: 400px;
-      height: 415px;
-      background-color: #ffffff5c;
+      width: 410px;
+      height: 425px;
+      background-color: #eaeff8;
       border: 1px solid #ddd;
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       z-index: 10001;
-      padding: 15px;
+      padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       line-height: 1.3;
       display: none;
@@ -336,20 +336,19 @@
     }
 
     .user-message {
-      word-break: break-word;
-      border: 1px solid #00b050;
-      margin-left: 20px;
-      padding: 5px;
-      border-radius: 5px;
+          word-break: break-word;
+        width: max-content;
+    padding: 5px;
+    border-radius: 5px;
+    background: #ccd3ff;
     }
 
     .model-message {
         padding: 5px;
-    background: #ddd;
-    border: 1px solid #d2d2d266;
+    background: #fdfefe;
     border-radius: 15px;
     position: relative;
-    margin: 5px;
+    margin: 5px 10px;
     overflow: visible;
     }
 
