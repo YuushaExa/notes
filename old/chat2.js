@@ -223,22 +223,23 @@
     }
 
     .input-textarea {
-      width: calc(100% - 20px);
-      height: 50px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 14px;
-      line-height: 1.5;
-      resize: none;
-      outline: none;
-      background-color: #fff;
+     width: calc(100% - 20px);
+    height: 50px;
+    padding: 10px;
+    border: 1px solid #d4dbe9;
+    border-radius: 7px;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+    background-color: #fff;
     }
 
     .buttons-container {
       display: flex;
-      justify-content: space-between;
-      align-items: center; /* Vertically align items */
+    justify-content: space-between;
+    align-items: center;
+    margin: 3px 0;
     }
 
     .run-button, .close-button, .clear-button {
@@ -339,7 +340,7 @@
           word-break: break-word;
         width: max-content;
     padding: 5px;
-    border-radius: 5px;
+    border-radius: 15px;
     background: #ccd3ff;
     }
 
@@ -348,7 +349,7 @@
     background: #fdfefe;
     border-radius: 15px;
     position: relative;
-    margin: 5px 10px;
+    margin: 10px;
     overflow: visible;
     }
 
