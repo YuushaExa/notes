@@ -168,7 +168,8 @@ function formatMessage(messageText) {
     { value: "What is ", text: "What is" },
     { value: "Top 10 anime", text: "Top 10 anime" },
     { value: "Explain like I'm 5: ", text: "Explain like I'm 5" },
-    { value: "Summarize this: ", text: "Summarize this" }
+    { value: "Summarize this: ", text: "Summarize this" },
+    { value: "Continue ", text: "Continue" }
   ];
 
   for (const option of promptOptions) {
