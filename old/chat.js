@@ -1,230 +1,344 @@
-function createField(label, type = "text") {
-    let fieldContainer = document.createElement("div"),
-        labelElement = document.createElement("label");
-    labelElement.innerText = label;
-    let inputElement = document.createElement(
-        "textarea" === type ? "textarea" : "input"
-    );
-    inputElement.type = type;
-    fieldContainer.appendChild(labelElement);
-    fieldContainer.appendChild(inputElement);
-    return fieldContainer;
-}
+!async function() {
+  // Replace with your actual API key
+  const API_KEY = "AIzaSyBASgs4WQo91Qm4J3Chzr5fqgzsehBlOeQ";
+  const MODEL_NAME = "gemini-pro";
 
-!function () {
-    let container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.top = "10px";
-    container.style.right = "10px";
-    container.style.width = "400px";
-    container.style.height = "400px"; // Fixed height
-    container.style.backgroundColor = "#f5f5f5";
-    container.style.border = "1px solid #ddd";
-    container.style.borderRadius = "10px";
-    container.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    container.style.zIndex = "10001";
-    container.style.padding = "15px";
-    container.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    container.style.display = "none";
-    document.body.appendChild(container);
+  let chatContainer = document.createElement("div");
+  chatContainer.classList.add("chat-container");
 
-    // Container for messages
-    let messagesContainer = document.createElement("div");
-    messagesContainer.style.height = "300px"; // Fixed height for messages
-    messagesContainer.style.overflowY = "auto"; // Scrollable
-    messagesContainer.style.marginBottom = "10px";
-    container.appendChild(messagesContainer);
+  let messagesContainer = document.createElement("div");
+  messagesContainer.classList.add("messages-container");
+  chatContainer.appendChild(messagesContainer);
 
-    // Input Window for Gemini Prompt
-    let inputWindow = document.createElement("textarea");
-    inputWindow.style.width = "calc(100% - 20px)";
-    inputWindow.style.height = "50px"; // Height for input area
-    inputWindow.style.padding = "10px";
-    inputWindow.style.border = "1px solid #ccc";
-    inputWindow.style.borderRadius = "5px";
-    inputWindow.style.fontSize = "14px";
-    inputWindow.style.lineHeight = "1.5";
-    inputWindow.style.resize = "none";
-    inputWindow.style.outline = "none";
-    inputWindow.style.backgroundColor = "#fff";
-    inputWindow.placeholder = "Enter your prompt here...";
-    container.appendChild(inputWindow);
+  let inputTextArea = document.createElement("textarea");
+  inputTextArea.classList.add("input-textarea");
+  inputTextArea.placeholder = "Enter your prompt here...";
+  chatContainer.appendChild(inputTextArea);
 
-    // Chat History (Initially Empty)
-    let chatHistory = [];
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.classList.add("buttons-container");
+  chatContainer.appendChild(buttonsContainer);
 
-    // Gemini API Key
-    const geminiApiKey = "TOKEn"; // **Replace with your actual key (securely!)**
+  const runButton = document.createElement("button");
+  runButton.classList.add("run-button");
+  runButton.innerText = "Run";
+  buttonsContainer.appendChild(runButton);
 
-    // Function to call the Gemini API
-    async function getGeminiData(prompt) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+  const clearButton = document.createElement("button");
+  clearButton.classList.add("clear-button");
+  clearButton.innerText = "Clear";
+  buttonsContainer.appendChild(clearButton);
 
-        try {
-            // Add user prompt to chat history
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+  const closeButton = document.createElement("button");
+  closeButton.classList.add("close-button");
+  closeButton.innerText = "Close";
+  buttonsContainer.appendChild(closeButton);
 
-            // Construct the full conversation history for the API
-            const requestBody = {
-                contents: chatHistory,
-            };
+  const inputListContainer = document.createElement("div");
+  inputListContainer.classList.add("input-list-container");
+  buttonsContainer.insertBefore(inputListContainer, clearButton);
 
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            });
+  const inputListSelect = document.createElement("select");
+  inputListSelect.classList.add("input-list");
+  const promptOptions = [
+    { value: "", text: "Select a Prompt" },
+    { value: "Fix Grammar - ", text: "Fix Grammar" },
+    { value: "What is ", text: "What is" },
+    { value: "Top 10 anime", text: "Top 10 anime" },
+    { value: "Explain like I'm 5: ", text: "Explain like I'm 5" },
+    { value: "Summarize this: ", text: "Summarize this" },
+    { value: "Continue ", text: "Continue" }
+  ];
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error from Gemini API:", errorData);
-                const errorMessage =
-                    "Error getting data from Gemini. Check console for details.";
-                chatHistory.push({
-                    role: "model",
-                    parts: [{ text: errorMessage }],
-                });
-                updateMessagesDisplay();
-                return;
-            }
+  for (const option of promptOptions) {
+    const optionElement = document.createElement("option");
+    optionElement.value = option.value;
+    optionElement.text = option.text;
+    inputListSelect.appendChild(optionElement);
+  }
 
-            const data = await response.json();
-            const generatedText = data.candidates[0]?.content?.parts[0]?.text;
-            // console.log("data", data);
+  inputListSelect.addEventListener("change", () => {
+    inputTextArea.value = inputListSelect.value;
+  });
+  inputListContainer.appendChild(inputListSelect);
 
-            if (generatedText) {
-                // Add the model's response to the chat history
-                chatHistory.push({
-                    role: "model",
-                    parts: [{ text: generatedText }],
-                });
-                updateMessagesDisplay();
-            } else {
-                const errorMessage =
-                    "Gemini response did not contain expected text format.";
-                chatHistory.push({
-                    role: "model",
-                    parts: [{ text: errorMessage }],
-                });
-                updateMessagesDisplay();
-            }
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            const errorMessage =
-                "An error occurred while calling Gemini API. Check console for details.";
-            chatHistory.push({
-                role: "model",
-                parts: [{ text: errorMessage }],
-            });
-            updateMessagesDisplay();
-        }
+  // Style element
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+  .chat-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 410px;
+    height: 425px;
+    background-color: #eaeff8;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 10001;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.3;
+    display: none;
+    color: #333;
+    font-size:15px;
+  }
+
+  .messages-container {
+    height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+
+  .input-textarea {
+   width: calc(100% - 20px);
+  height: 50px;
+  padding: 10px;
+  border: 1px solid #d4dbe9;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  background-color: #fff;
+  }
+
+  .buttons-container {
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 3px 0;
+  }
+
+  .run-button, .close-button, .clear-button {
+    border: none;
+    padding: 8px 16px; /* Adjusted padding */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px; /* Unified font size */
+  }
+
+  .run-button {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .run-button:hover, .run-button:disabled {
+    background-color: #0056b3;
+  }
+
+  .close-button {
+    background-color: #dc3545;
+    color: #fff;
+  }
+
+  .close-button:hover {
+    background-color: #c82333;
+  }
+
+  .clear-button {
+    background-color: #6c757d;
+    color: #fff;
+  }
+
+  .clear-button:hover {
+    background-color: #5a6268;
+  }
+
+   .chat-container h1, .chat-container h2, .chat-container h3, .chat-container ul, .chat-container ol, .chat-container li, .chat-container strong, .chat-container em, .chat-container a, .chat-container pre, .chat-container code {
+    margin-bottom: 10px;
+  }
+
+  .chat-container h1 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .chat-container h2 {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .chat-container h3 {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .chat-container ul, .chat-container ol {
+    padding-left: 20px;
+  }
+
+  .chat-container li {
+    margin-bottom: 5px;
+  }
+
+  .chat-container strong {
+    font-weight: bold;
+  }
+
+  .chat-container em {
+    font-style: italic;
+  }
+
+  .chat-container a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .chat-container a:hover {
+    text-decoration: underline;
+  }
+
+  .chat-container pre {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-x: auto;
+  }
+
+  .chat-container code {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f5f5f5;
+    padding: 2px 5px;
+    border: 1px solid #ddd;
+  }
+
+  .user-message {
+        word-break: break-word;
+      width: max-content;
+  padding: 5px;
+  border-radius: 10px;
+  background: #ccd3ff;
+  }
+
+  .model-message {
+      padding: 5px;
+  background: #fdfefe;
+  border-radius: 10px;
+  position: relative;
+  margin: 10px 0 10px 10px;
+  overflow: visible;
+  }
+
+  .input-list-container {
+    margin-right: 10px;
+  }
+
+  .input-list {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px; /* Match button font size */
+  }
+`;
+  document.head.appendChild(styleElement);
+  document.body.appendChild(chatContainer);
+  chatContainer.style.display = "block";
+
+  // Chat history array
+   let chatHistory = [];
+
+  // Function to update the display with chat history
+  function updateDisplay() {
+    messagesContainer.innerHTML = "";
+    for (const message of chatHistory) {
+      const messageElement = document.createElement("div");
+      messageElement.classList.add(message.role === "user" ? "user-message" : "model-message");
+      messageElement.innerHTML = message.parts[0].text; // Use innerHTML to handle potential HTML content
+      messagesContainer.appendChild(messageElement);
     }
+    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
+  }
 
-    // Function to Update Messages Display
-    function updateMessagesDisplay() {
-        // Clear existing messages
-        messagesContainer.innerHTML = "";
+  // Function to add a message to the chat history and display it
+  function addMessageToChatHistory(role, text) {
+    chatHistory.push({
+      role: role,
+      parts: [{ text: text }]
+    });
+    updateDisplay();
+  }
 
-        // Iterate over each message in the chat history
-        for (const message of chatHistory) {
-            const text = message.parts[0].text;
+  // Function to send a message to the Gemini API
+  async function sendMessage(userPrompt) {
+    addMessageToChatHistory("user", userPrompt);
 
-            // Create a new message container with appropriate styling
-            const messageNode = document.createElement("div");
+    const modelMessageElement = document.createElement("div");
+    modelMessageElement.classList.add("model-message");
+    messagesContainer.appendChild(modelMessageElement);
 
-            // Apply different styles based on whether the message is from the user or the model
-            if (message.role === "user") {
-                messageNode.style.cssText = `
-                    margin-bottom: 10px;
-                    word-break: break-word;
-                    border: 1px solid #00b050;
-                    margin-left: 20px;
-                    padding: 5px;
-                    border-radius: 5px;
-                `;
-            } else {
-                messageNode.style.cssText = `
-                    margin-bottom: 10px;
-                    word-break: break-word;
-                    border: 1px solid rgb(0, 123, 255);
-                    margin-right: 20px;
-                    padding: 5px;
-                    border-radius: 5px;
-                `;
+    try {
+      const response = await fetch('https://chatai-flame-eta.vercel.app/api/generate', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ chatHistory }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        
+        // Parse the streamed events
+        const events = text.split('\n\n').filter(event => event.trim() !== '');
+        for (const event of events) {
+          const eventType = event.split(':')[0].trim();
+          if (eventType === 'data') {
+            const data = JSON.parse(event.substring(5).trim());
+            if (data.text) {
+              fullResponse += data.text;
+              modelMessageElement.innerHTML = fullResponse;
             }
-
-            // Set the message text
-            messageNode.textContent = text;
-
-            // Append the message to the messages container
-            messagesContainer.appendChild(messageNode);
+          } else if (eventType === 'event' && event.includes('end')) {
+            console.log('Stream ended'); // Handle end of stream
+            break; // Exit the loop
+          }
         }
+      }
 
-        // Scroll to the bottom of the messages container to show the latest messages
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      addMessageToChatHistory("model", fullResponse);
+
+    } catch (error) {
+      console.error("Error:", error);
+      modelMessageElement.textContent = "Error: " + error.message;
     }
-
-    // Button Container
-    let buttonContainer = document.createElement("div");
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "space-between";
-    container.appendChild(buttonContainer);
-
-    // Run Button
-    let runButton = document.createElement("button");
+  }
+  // Event listeners for buttons
+  runButton.addEventListener("click", async () => {
+    const userPrompt = inputTextArea.value.trim();
+    if (userPrompt === "") {
+      alert("Please enter a prompt.");
+      return;
+    }
+    runButton.disabled = true;
+    runButton.innerText = "Running...";
+    await sendMessage(userPrompt);
+    runButton.disabled = false;
     runButton.innerText = "Run";
-    runButton.style.backgroundColor = "#007bff";
-    runButton.style.color = "#fff";
-    runButton.style.border = "none";
-    runButton.style.padding = "10px 20px";
-    runButton.style.borderRadius = "5px";
-    runButton.style.cursor = "pointer";
-    runButton.style.transition = "background-color 0.2s";
-    runButton.onclick = async function () {
-        // Get the prompt from the input window
-        const prompt = inputWindow.value.trim();
+    inputTextArea.value = "";
+  });
 
-        if (prompt !== "") {
-            // Call getGeminiData with the prompt
-            await getGeminiData(prompt);
+  clearButton.addEventListener("click", () => {
+    chatHistory = [];
+    updateDisplay();
+  });
 
-            // Clear the input window
-            inputWindow.value = "";
-        } else {
-            alert("Please enter a prompt.");
-        }
-    };
-    runButton.onmouseover = function () {
-        this.style.backgroundColor = "#0056b3";
-    };
-    runButton.onmouseout = function () {
-        this.style.backgroundColor = "#007bff";
-    };
-    buttonContainer.appendChild(runButton);
-
-    // Close Button
-    let closeButton = document.createElement("button");
-    closeButton.innerText = "Close";
-    closeButton.style.backgroundColor = "#dc3545";
-    closeButton.style.color = "#fff";
-    closeButton.style.border = "none";
-    closeButton.style.padding = "10px 20px";
-    closeButton.style.borderRadius = "5px";
-    closeButton.style.cursor = "pointer";
-    closeButton.style.transition = "background-color 0.2s";
-    closeButton.onclick = function () {
-        container.remove(); // Use remove() to delete the container
-    };
-    closeButton.onmouseover = function () {
-        this.style.backgroundColor = "#c82333";
-    };
-    closeButton.onmouseout = function () {
-        this.style.backgroundColor = "#dc3545";
-    };
-    buttonContainer.appendChild(closeButton);
-
-    // Show the container initially
-    container.style.display = "block";
+  closeButton.addEventListener("click", () => {
+    chatContainer.remove();
+    if (styleElement) {
+      styleElement.remove();
+    }
+  });
 }();
