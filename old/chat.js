@@ -1,4 +1,66 @@
-!async function(){let e=document.createElement("div");e.classList.add("chat-container");let t=document.createElement("div");t.classList.add("messages-container"),e.appendChild(t);let a=document.createElement("textarea");a.classList.add("input-textarea"),a.placeholder="Enter your prompt here...",e.appendChild(a);let n=document.createElement("div");n.classList.add("buttons-container"),e.appendChild(n);let o=document.createElement("button");o.classList.add("run-button"),o.innerText="Run",n.appendChild(o);let r=document.createElement("button");r.classList.add("clear-button"),r.innerText="Clear",n.appendChild(r);let i=document.createElement("button");i.classList.add("close-button"),i.innerText="Close",n.appendChild(i);let l=document.createElement("div");l.classList.add("input-list-container"),n.insertBefore(l,r);let d=document.createElement("select");for(let c of(d.classList.add("input-list"),[{value:"",text:"Select a Prompt"},{value:"Fix Grammar - ",text:"Fix Grammar"},{value:"What is ",text:"What is"},{value:"Top 10 anime",text:"Top 10 anime"},{value:"Explain like I'm 5: ",text:"Explain like I'm 5"},{value:"Summarize this: ",text:"Summarize this"},{value:"Continue ",text:"Continue"}])){let s=document.createElement("option");s.value=c.value,s.text=c.text,d.appendChild(s)}d.addEventListener("change",()=>{a.value=d.value}),l.appendChild(d);let p=document.createElement("style");p.textContent=`
+!async function() {
+  let chatContainer = document.createElement("div");
+  chatContainer.classList.add("chat-container");
+
+  let messagesContainer = document.createElement("div");
+  messagesContainer.classList.add("messages-container");
+  chatContainer.appendChild(messagesContainer);
+
+  let inputTextArea = document.createElement("textarea");
+  inputTextArea.classList.add("input-textarea");
+  inputTextArea.placeholder = "Enter your prompt here...";
+  chatContainer.appendChild(inputTextArea);
+
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.classList.add("buttons-container");
+  chatContainer.appendChild(buttonsContainer);
+
+  const runButton = document.createElement("button");
+  runButton.classList.add("run-button");
+  runButton.innerText = "Run";
+  buttonsContainer.appendChild(runButton);
+
+  const clearButton = document.createElement("button");
+  clearButton.classList.add("clear-button");
+  clearButton.innerText = "Clear";
+  buttonsContainer.appendChild(clearButton);
+
+  const closeButton = document.createElement("button");
+  closeButton.classList.add("close-button");
+  closeButton.innerText = "Close";
+  buttonsContainer.appendChild(closeButton);
+
+  const inputListContainer = document.createElement("div");
+  inputListContainer.classList.add("input-list-container");
+  buttonsContainer.insertBefore(inputListContainer, clearButton);
+
+  const inputListSelect = document.createElement("select");
+  inputListSelect.classList.add("input-list");
+  const promptOptions = [
+    { value: "", text: "Select a Prompt" },
+    { value: "Fix Grammar - ", text: "Fix Grammar" },
+    { value: "What is ", text: "What is" },
+    { value: "Top 10 anime", text: "Top 10 anime" },
+    { value: "Explain like I'm 5: ", text: "Explain like I'm 5" },
+    { value: "Summarize this: ", text: "Summarize this" },
+    { value: "Continue ", text: "Continue" }
+  ];
+
+  for (const option of promptOptions) {
+    const optionElement = document.createElement("option");
+    optionElement.value = option.value;
+    optionElement.text = option.text;
+    inputListSelect.appendChild(optionElement);
+  }
+
+  inputListSelect.addEventListener("change", () => {
+    inputTextArea.value = inputListSelect.value;
+  });
+  inputListContainer.appendChild(inputListSelect);
+
+  // Style element
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
   .chat-container {
     position: fixed;
     top: 10px;
@@ -139,20 +201,20 @@
   }
 
   .user-message {
-        word-break: break-word;
-      width: max-content;
-  padding: 5px;
-  border-radius: 10px;
-  background: #ccd3ff;
+    word-break: break-word;
+    width: max-content;
+    padding: 5px;
+    border-radius: 10px;
+    background: #ccd3ff;
   }
 
   .model-message {
-      padding: 5px;
-  background: #fdfefe;
-  border-radius: 10px;
-  position: relative;
-  margin: 10px 0 10px 10px;
-  overflow: visible;
+    padding: 5px;
+    background: #fdfefe;
+    border-radius: 10px;
+    position: relative;
+    margin: 10px 0 10px 10px;
+    overflow: visible;
   }
 
   .input-list-container {
@@ -165,6 +227,125 @@
     border-radius: 5px;
     font-size: 14px; /* Match button font size */
   }
-`,document.head.appendChild(p),document.body.appendChild(e),e.style.display="block";let u=[];function h(){for(let e of(t.innerHTML="",u)){let a=document.createElement("div");a.classList.add("user"===e.role?"user-message":"model-message"),a.innerHTML=formatMessage(e.parts[0].text),t.appendChild(a)}t.scrollTop=t.scrollHeight}function f(e,t){u.push({role:e,parts:[{text:t}]}),h()}async function x(e){f("user",e);let a=document.createElement("div");a.classList.add("model-message"),t.appendChild(a);try{let n=await fetch("https://chatai-flame-eta.vercel.app/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chatHistory:u})});if(!n.ok)throw Error(`HTTP error! status: ${n.status}`);let o=n.body.getReader(),r=new TextDecoder,i="";for(;;){let{done:l,value:d}=await o.read();if(l)break;let c=r.decode(d),s=c.split("\n\n").filter(e=>""!==e.trim());for(let p of s){let h=p.split(":")[0].trim();if("data"===h){let x=JSON.parse(p.substring(5).trim());x.text&&(i+=x.text,a.innerHTML=formatMessage(i))}else if("event"===h&&p.includes("end")){console.log("Stream ended");break}}}f("model",i)}catch(g){console.error("Error:",g),a.textContent="Error: "+g.message}}o.addEventListener("click",async()=>{let e=a.value.trim();if(""===e){alert("Please enter a prompt.");return}o.disabled=!0,o.innerText="Running...",await x(e),o.disabled=!1,o.innerText="Run",a.value=""}),r.addEventListener("click",()=>{u=[],h()}),i.addEventListener("click",()=>{e.remove(),p&&p.remove()})}();function formatMessage(e){let t=e;return(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=t.replace(/\\(\*|_|#|!|\[|\]|\(|\))/g,"$1")).replace(/^([^#\*\d].+)$/gm,"<p>$1</p>")).replace(/^### (.*?)$/gm,"<h3>$1</h3>")).replace(/^## (.*?)$/gm,"<h2>$1</h2>")).replace(/^# (.*?)$/gm,"<h1>$1</h1>")).replace(/^( *)(?:(\d+)\.|\*) (.*?)$/gm,(e,t,a,n)=>{let o=void 0!==a;return`${t}<${o?"ol":"ul"}>
-${t}  <li>${n}</li>
-${t}</${o?"ol":"ul"}>`})).replace(/(<\/ul>\n<ul>|<\/ol>\n<ol>)/g,"")).replace(/<\/li>(<\/ul>|<\/ol>)/g,"$1")).replace(/(<ul>|<\ol>)\n +<li>/g,"$1<li>")).replace(/!\[(.*?)\]\((.*?)\)/g,"<img src='$2' alt='$1'>")).replace(/\[(.*?)\]\((.*?)\)/g,"<a href='$2'>$1</a>")).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")).replace(/\*(.*?)\*/g,"<em>$1</em>")}
+`;
+  document.head.appendChild(styleElement);
+  document.body.appendChild(chatContainer);
+  chatContainer.style.display = "block";
+
+  // Chat history array
+   const markedScript = document.createElement("script");
+  markedScript.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+  document.head.appendChild(markedScript);
+
+  // Chat history array
+  let chatHistory = [];
+
+  // Function to update the display with chat history
+  function updateDisplay() {
+    messagesContainer.innerHTML = "";
+    for (const message of chatHistory) {
+      const messageElement = document.createElement("div");
+      messageElement.classList.add(
+        message.role === "user" ? "user-message" : "model-message"
+      );
+
+      // Use marked to convert Markdown to HTML
+      messageElement.innerHTML = marked.parse(message.parts[0].text);
+
+      messagesContainer.appendChild(messageElement);
+    }
+    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
+  }
+
+  // Function to add a message to the chat history and display it
+  function addMessageToChatHistory(role, text) {
+    chatHistory.push({
+      role: role,
+      parts: [{ text: text }]
+    });
+    updateDisplay();
+  }
+
+  // Function to send a message to the Gemini API
+  async function sendMessage(userPrompt) {
+    addMessageToChatHistory("user", userPrompt);
+
+    const modelMessageElement = document.createElement("div");
+    modelMessageElement.classList.add("model-message");
+    messagesContainer.appendChild(modelMessageElement);
+
+    try {
+      const response = await fetch('https://chatai-flame-eta.vercel.app/api/generate', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ chatHistory }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+
+        // Parse the streamed events
+        const events = text.split('\n\n').filter(event => event.trim() !== '');
+        for (const event of events) {
+          const eventType = event.split(':')[0].trim();
+          if (eventType === 'data') {
+            const data = JSON.parse(event.substring(5).trim());
+            if (data.text) {
+              fullResponse += data.text;
+              // Use marked to convert Markdown to HTML
+              modelMessageElement.innerHTML = marked.parse(fullResponse);
+            }
+          } else if (eventType === 'event' && event.includes('end')) {
+            console.log('Stream ended'); // Handle end of stream
+            break; // Exit the loop
+          }
+        }
+      }
+
+      addMessageToChatHistory("model", fullResponse);
+
+    } catch (error) {
+      console.error("Error:", error);
+      modelMessageElement.textContent = "Error: " + error.message;
+    }
+  }
+  // Event listeners for buttons
+  runButton.addEventListener("click", async () => {
+    const userPrompt = inputTextArea.value.trim();
+    if (userPrompt === "") {
+      alert("Please enter a prompt.");
+      return;
+    }
+    runButton.disabled = true;
+    runButton.innerText = "Running...";
+    await sendMessage(userPrompt);
+    runButton.disabled = false;
+    runButton.innerText = "Run";
+    inputTextArea.value = "";
+  });
+
+  clearButton.addEventListener("click", () => {
+    chatHistory = [];
+    updateDisplay();
+  });
+
+  closeButton.addEventListener("click", () => {
+    chatContainer.remove();
+    if (styleElement) {
+      styleElement.remove();
+    }
+  });
+}();
