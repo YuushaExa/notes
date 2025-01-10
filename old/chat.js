@@ -1,8 +1,4 @@
 !async function() {
-  // Replace with your actual API key
-  const API_KEY = "AIzaSyBASgs4WQo91Qm4J3Chzr5fqgzsehBlOeQ";
-  const MODEL_NAME = "gemini-pro";
-
   let chatContainer = document.createElement("div");
   chatContainer.classList.add("chat-container");
 
