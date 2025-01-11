@@ -98,34 +98,43 @@ javascript: (function () {
       function createStyleElement() {
         const styleElement = createElement("style");
         styleElement.textContent = `
-          /* Combined and Minified CSS */
-          .chat-container{position:fixed;top:10px;right:10px;width:410px;height:425px;background-color:#eaeff8;border:1px solid #ddd;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1);z-index:10001;padding:10px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.3;display:none;color:#333;font-size:15px}
-          .messages-container{height:300px;overflow-y:auto;margin-bottom:10px}
-          .input-textarea{width:calc(100% - 20px);height:50px;padding:10px;border:1px solid #d4dbe9;border-radius:7px;font-size:14px;line-height:1.5;resize:none;outline:none;background-color:#fff}
-          .buttons-container{display:flex;justify-content:space-between;align-items:center;margin:3px 0}
-          .run-button,.close-button,.clear-button{border:none;padding:8px 16px;border-radius:5px;cursor:pointer;transition:background-color .2s;font-size:14px}
-          .run-button{background-color:#007bff;color:#fff}
-          .run-button:hover,.run-button:disabled{background-color:#0056b3}
-          .close-button{background-color:#dc3545;color:#fff}
-          .close-button:hover{background-color:#c82333}
-          .clear-button{background-color:#6c757d;color:#fff}
-          .clear-button:hover{background-color:#5a6268}
-          .chat-container h1,.chat-container h2,.chat-container h3,.chat-container ul,.chat-container ol,.chat-container li,.chat-container strong,.chat-container em,.chat-container a,.chat-container pre,.chat-container code{margin-bottom:10px}
-          .chat-container h1{font-size:24px;font-weight:700}
-          .chat-container h2{font-size:20px;font-weight:700}
-          .chat-container h3{font-size:18px;font-weight:700}
-          .chat-container ul,.chat-container ol{padding-left:20px}
-          .chat-container li{margin-bottom:5px}
-          .chat-container strong{font-weight:700}
-          .chat-container em{font-style:italic}
-          .chat-container a{color:#007bff;text-decoration:none}
-          .chat-container a:hover{text-decoration:underline}
-          .chat-container pre{background-color:#f5f5f5;border:1px solid #ddd;padding:10px;overflow-x:auto}
-          .chat-container code{font-family:'Courier New',Courier,monospace;background-color:#f5f5f5;padding:2px 5px;border:1px solid #ddd}
-          .user-message{word-break:break-word;width:max-content;padding:5px;border-radius:10px;background:#ccd3ff}
-          .model-message{padding:5px;background:#fdfefe;border-radius:10px;position:relative;margin:10px 0 10px 10px}
-          .input-list-container{margin-right:10px}
-          .input-list{padding:5px;border:1px solid #ccc;border-radius:5px;font-size:14px}
+         /* Combined and Minified CSS */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.chat-container{position:fixed;top:10px;right:10px;max-width:410px;width:95%;height:425px;background-color:#eaeff8;border:1px solid #ddd;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1);z-index:10001;padding:10px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.3;display:none;color:#333;font-size:15px}
+.messages-container{height:300px;overflow-y:auto;margin-bottom:10px}
+.input-textarea{width:calc(100% - 20px);height:50px;padding:10px;border:1px solid #d4dbe9;border-radius:7px;font-size:14px;line-height:1.5;resize:none;outline:none;background-color:#fff}
+.buttons-container{display:flex;justify-content:space-between;align-items:center;margin:3px 0}
+.run-button,.close-button,.clear-button{border:none;padding:8px 16px;border-radius:5px;cursor:pointer;transition:background-color .2s;font-size:14px}
+.run-button{background-color:#007bff;color:#fff}
+.run-button:hover,.run-button:disabled{background-color:#0056b3}
+.close-button{background-color:#dc3545;color:#fff}
+.close-button:hover{background-color:#c82333}
+.clear-button{background-color:#6c757d;color:#fff}
+.clear-button:hover{background-color:#5a6268}
+.chat-container h1,.chat-container h2,.chat-container h3,.chat-container ul,.chat-container ol,.chat-container li,.chat-container strong,.chat-container em,.chat-container a,.chat-container pre,.chat-container code{margin-bottom:10px}
+.chat-container h1{font-size:24px;font-weight:700}
+.chat-container h2{font-size:20px;font-weight:700}
+.chat-container h3{font-size:18px;font-weight:700}
+.chat-container ul, .chat-container ol {
+  padding-left: 20px; /* Increase padding slightly */
+}
+ol, ul {
+    list-style: auto;
+}
+.chat-container li{margin-bottom:5px}
+.chat-container strong{font-weight:700}
+.chat-container em{font-style:italic}
+.chat-container a{color:#007bff;text-decoration:none}
+.chat-container a:hover{text-decoration:underline}
+.chat-container pre{background-color:#f5f5f5;border:1px solid #ddd;padding:10px;overflow-x:auto}
+.chat-container code{font-family:'Courier New',Courier,monospace;background-color:#f5f5f5;padding:2px 5px;border:1px solid #ddd}
+.user-message{word-break:break-word;width:max-content;padding:5px;border-radius:10px;background:#ccd3ff}
+.model-message{padding:5px;background:#fdfefe;border-radius:10px;position:relative;margin:10px 0 10px 10px}
+.input-list-container{margin-right:10px}
+.input-list{padding:5px;border:1px solid #ccc;border-radius:5px;font-size:14px}
         `;
         return styleElement;
       }
