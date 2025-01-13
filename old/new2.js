@@ -83,9 +83,8 @@ function createField(label, type = "text") {
         return url.startsWith("http://") || url.startsWith("https://");
     }
 
-
 // Function to call your backend API
-async function getGeminiData(title) {
+async function getGeminiData(title, url, description) {
     const apiUrl = "https://chatai-flame-eta.vercel.app/api/extract-info"; // Your new endpoint
 
     try {
@@ -115,54 +114,75 @@ async function getGeminiData(title) {
     }
 }
 
-    autoButton.innerText = "Auto";
-    autoButton.onclick = async function () {
-        let metaTags = document.getElementsByTagName("meta"),
-            ogData = {};
-        for (let tag of metaTags)
-            tag.getAttribute("property") &&
-                tag.getAttribute("property").startsWith("og:") &&
-                (ogData[tag.getAttribute("property").replace("og:", "")] =
-                    tag.getAttribute("content"));
+autoButton.innerText = "Auto";
+autoButton.onclick = async function () {
+    // Cache DOM elements
+    const titleInput = titleField.querySelector("input");
+    const urlInput = urlField.querySelector("input");
+    const descriptionTextarea = descriptionField.querySelector("textarea");
+    const imageUrlInput = imageUrlField.querySelector("input");
+    const genreInput = genreField.querySelector("input");
+    const categoryInput = categoryField.querySelector("input");
+    const tagsInput = tagsField.querySelector("input");
 
-        let title = ogData.title;
-        title ||
-            (title = (titleTag = document.querySelector("title"))
-                ? titleTag.innerText
-                : "");
-        title ||
-            (title = (h1Tag = document.querySelector("h1")) ? h1Tag.innerText : "");
-        title ||
-            (title = (h2Tag = document.querySelector("h2")) ? h2Tag.innerText : "");
-
-        let imageUrl = ogData.image;
-        imageUrl ||
-            (imageUrl = (bodyTag = document.querySelector("body"))
-                ? getComputedStyle(bodyTag).backgroundImage.slice(4, -1).replace(/['"]/g, "")
-                : "");
-        imageUrl ||
-            (imageUrl = (firstImage = document.querySelector("img")) ? firstImage.src : "");
-
-        titleField.querySelector("input").value = title || "";
-        urlField.querySelector("input").value = window.location.href;
-        descriptionField.querySelector("textarea").value = ogData.description || "";
-        imageUrlField.querySelector("input").value = imageUrl || "";
-
-        imageUrl && isValidImageUrl(imageUrl)
-            ? ((imagePreview.src = imageUrl), (imagePreview.style.display = "block"))
-            : (imagePreview.style.display = "none");
-
-        if (title) {
-        const geminiData = await getGeminiData(title, url, description);
-            if (geminiData) {
-                genreField.querySelector("input").value = geminiData.genre || ""; // Populate genre field
-                categoryField.querySelector("input").value = geminiData.category || "";
-                tagsField.querySelector("input").value = geminiData.tags || "";
-            }
-        } else {
-            alert("Could not determine the title of the page.");
+    // Extract OpenGraph data
+    const metaTags = document.getElementsByTagName("meta");
+    const ogData = {};
+    for (const tag of metaTags) {
+        const property = tag.getAttribute("property");
+        if (property?.startsWith("og:")) {
+            ogData[property.replace("og:", "")] = tag.getAttribute("content");
         }
-    };
+    }
+
+    // Determine title
+    let title = ogData.title || document.querySelector("title")?.innerText ||
+                document.querySelector("h1")?.innerText ||
+                document.querySelector("h2")?.innerText || "";
+
+    // Determine image URL
+    let imageUrl = ogData.image ||
+                   document.querySelector("body")?.style.backgroundImage.slice(4, -1).replace(/['"]/g, "") ||
+                   document.querySelector("img")?.src || "";
+
+    // Populate fields
+    titleInput.value = title;
+    urlInput.value = window.location.href; // Set URL from current page
+    descriptionTextarea.value = ogData.description || ""; // Set description from OpenGraph
+    imageUrlInput.value = imageUrl;
+
+    // Display image preview if valid
+    if (imageUrl && isValidImageUrl(imageUrl)) {
+        imagePreview.src = imageUrl;
+        imagePreview.style.display = "block";
+    } else {
+        imagePreview.style.display = "none";
+    }
+
+    // Fetch Gemini data if title is available
+    if (title) {
+        try {
+            // Use values from input fields
+            const url = urlInput.value; // Get the value from the URL input field
+            const description = descriptionTextarea.value; // Get the value from the description textarea
+
+            // Call getGeminiData
+            const geminiData = await getGeminiData(title, url, description);
+
+            // Populate additional fields
+            if (geminiData) {
+                genreInput.value = geminiData.genre || "";
+                categoryInput.value = geminiData.category || "";
+                tagsInput.value = geminiData.tags || "";
+            }
+        } catch (error) {
+            console.error("Error fetching Gemini data:", error);
+            alert("An error occurred while fetching additional data.");
+        }
+    } else {
+        alert("Could not determine the title of the page.");
+    }
+};
 
     buttonContainer.appendChild(autoButton);
     let showButton = document.createElement("button");
@@ -196,7 +216,7 @@ async function getGeminiData(title) {
     let closeButton = document.createElement("button");
     closeButton.innerText = "Close";
 closeButton.onclick = function () {
-        container.remove(); 
+        container.remove();
     };
     buttonContainer.appendChild(closeButton);
 
