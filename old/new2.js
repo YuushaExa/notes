@@ -94,7 +94,7 @@ async function getGeminiData(title) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ title: title }), // Send only the title
+             body: JSON.stringify({ title: title, url: url, description: description }),
         });
 
         if (!response.ok) {
@@ -153,7 +153,7 @@ async function getGeminiData(title) {
             : (imagePreview.style.display = "none");
 
         if (title) {
-            const geminiData = await getGeminiData(title);
+        const geminiData = await getGeminiData(title, url, description);
             if (geminiData) {
                 genreField.querySelector("input").value = geminiData.genre || ""; // Populate genre field
                 categoryField.querySelector("input").value = geminiData.category || "";
