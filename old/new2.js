@@ -84,6 +84,10 @@ function createField(label, type = "text") {
   container.id = "my-advanced-helper-div"; // Main container now has an ID
   container.classList.add("main-container");
   document.body.appendChild(container);
+  // Image preview
+  let imagePreview = document.createElement("img");
+  imagePreview.classList.add("image-preview");
+  container.appendChild(imagePreview);
 
   // Create fields and append them to the container
   let titleField = createField("Title"),
@@ -117,11 +121,6 @@ function createField(label, type = "text") {
   let genreField = createField("Genre"),
     genreInput = genreField.querySelector("input");
   container.appendChild(genreField);
-
-  // Image preview
-  let imagePreview = document.createElement("img");
-  imagePreview.classList.add("image-preview");
-  container.appendChild(imagePreview);
 
   imageUrlInput.addEventListener("input", function () {
     let imageUrl = this.value;
