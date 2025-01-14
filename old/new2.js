@@ -35,6 +35,7 @@ function createField(label, type = "text") {
                font-family: Arial,Helvetica,sans-serif;
     color: black;
     font-size: 15px;
+        border-radius: 7px;
         }
 
         .field-container {
@@ -55,9 +56,12 @@ function createField(label, type = "text") {
         }
 
         .image-preview {
-            width: 80%;
-            display: none;
-            margin-top: 10px;
+          width: 108%;
+    display: none;
+    margin-top: -11px;
+    margin-left: -11px;
+    max-height: 200px;
+    border-radius: 7px;
         }
 
         .button-container {
