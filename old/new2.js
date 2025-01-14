@@ -1,209 +1,243 @@
 function createField(label, type = "text") {
-    let fieldContainer = document.createElement("div"),
-        labelElement = document.createElement("label");
+    let fieldContainer = document.createElement("div");
+    fieldContainer.classList.add("field-container");
+
+    let labelElement = document.createElement("label");
     labelElement.innerText = label;
+    labelElement.classList.add("field-label");
+
     let inputElement = document.createElement(
         "textarea" === type ? "textarea" : "input"
     );
     inputElement.type = type;
+    inputElement.classList.add("field-input");
+
     fieldContainer.appendChild(labelElement);
     fieldContainer.appendChild(inputElement);
     return fieldContainer;
 }
 
 !function () {
+    // Create the CSS style element and insert the CSS rules
+    let style = document.createElement("style");
+    style.innerHTML = `
+        .main-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            height: auto;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 10001;
+            padding: 10px;
+            display: none; /* Initially hidden */
+        }
+
+        .field-container {
+            margin-bottom: 10px;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .image-preview {
+            width: 80%;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .action-button {
+            padding: 5px 10px;
+            background-color: #4CAF50; /* Example - you can customize */
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    `;
+    document.head.appendChild(style); // Add the style element to the document head
+
     let container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.top = "10px";
-    container.style.right = "10px";
-    container.style.width = "300px";
-    container.style.height = "auto";
-    container.style.backgroundColor = "white";
-    container.style.border = "1px solid #ccc";
-    container.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
-    container.style.zIndex = "10001";
-    container.style.padding = "10px";
-    container.style.display = "none";
+    container.classList.add("main-container");
     document.body.appendChild(container);
 
-    // Create the new Genre field
-    let genreField = createField("Genre");
-
+    // Create fields (store input elements for later use)
     let titleField = createField("Title"),
-        urlField = createField("URL"),
-        imageUrlField = createField("Image URL"),
-        descriptionField = createField("Description", "textarea"),
-        contentField = createField("Content", "textarea"),
-        categoryField = createField("Category"),
-        tagsField = createField("Tags (comma-separated)");
+        titleInput = titleField.querySelector("input");
+    let urlField = createField("URL"),
+        urlInput = urlField.querySelector("input");
+    let imageUrlField = createField("Image URL"),
+        imageUrlInput = imageUrlField.querySelector("input");
+    let descriptionField = createField("Description", "textarea"),
+        descriptionTextarea = descriptionField.querySelector("textarea");
+    let contentField = createField("Content", "textarea"),
+        contentTextarea = contentField.querySelector("textarea");
+    let categoryField = createField("Category"),
+        categoryInput = categoryField.querySelector("input");
+    let tagsField = createField("Tags (comma-separated)"),
+        tagsInput = tagsField.querySelector("input");
+    let genreField = createField("Genre"),
+        genreInput = genreField.querySelector("input");
+
     let imagePreview = document.createElement("img");
-    imagePreview.style.width = "80%";
-    imagePreview.style.display = "none";
+    imagePreview.classList.add("image-preview");
     container.appendChild(imagePreview);
-    imageUrlField.querySelector("input").addEventListener("input", function () {
+
+    // Add event listener to image URL field
+    imageUrlInput.addEventListener("input", function () {
         let imageUrl = this.value;
-        imageUrl
-            ? ((imagePreview.src = imageUrl), (imagePreview.style.display = "block"))
-            : (imagePreview.style.display = "none");
+        if (imageUrl && isValidImageUrl(imageUrl)) {
+            imagePreview.src = imageUrl;
+            imagePreview.style.display = "block";
+        } else {
+            imagePreview.style.display = "none";
+        }
     });
+
     let buttonContainer = document.createElement("div");
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "space-between";
+    buttonContainer.classList.add("button-container");
     container.appendChild(buttonContainer);
+
     let sendButton = document.createElement("button");
     sendButton.innerText = "Send";
+    sendButton.classList.add("action-button");
     sendButton.onclick = function () {
         let data = {
-            title: titleField.querySelector("input").value,
-            url: urlField.querySelector("input").value,
-            image: imageUrlField.querySelector("input").value,
-            description: descriptionField.querySelector("textarea").value,
-            content: contentField.querySelector("textarea").value,
-            category: categoryField.querySelector("input").value,
-            tags: tagsField.querySelector("input").value.split(",").map((tag) => tag.trim()),
-            genre: genreField.querySelector("input").value, // Get genre value
+            title: titleInput.value,
+            url: urlInput.value,
+            image: imageUrlInput.value,
+            description: descriptionTextarea.value,
+            content: contentTextarea.value,
+            category: categoryInput.value,
+            tags: tagsInput.value.split(",").map((tag) => tag.trim()),
+            genre: genreInput.value,
         };
         sendDataToGitHub(data);
     };
     buttonContainer.appendChild(sendButton);
-    let penButton = document.createElement("button");
-    penButton.innerText = "Pen";
-    let isPenActive = !1;
-    penButton.onclick = function () {
-        isPenActive = !isPenActive;
-        isPenActive
-            ? ((penButton.innerText = "Stop Pen"),
-                document.addEventListener("click", handleClick))
-            : ((penButton.innerText = "Pen"),
-                document.removeEventListener("click", handleClick));
-    };
-    buttonContainer.appendChild(penButton);
-    let autoButton = document.createElement("button");
+
     function isValidImageUrl(url) {
         return url.startsWith("http://") || url.startsWith("https://");
     }
 
-// Function to call your backend API
-async function getGeminiData(title, url, description) {
-    const apiUrl = "https://chatai-flame-eta.vercel.app/api/extract-info"; // Your new endpoint
+    // Function to call your backend API
+    async function getGeminiData(title, url, description) {
+        const apiUrl = "https://chatai-flame-eta.vercel.app/api/extract-info";
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title: title, url: url, description: description }),
+            });
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-             body: JSON.stringify({ title: title, url: url, description: description }),
-        });
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error from your API:", errorData);
+                alert("Error getting data from your API. Check console for details.");
+                return null;
+            }
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error from your API:", errorData);
-            alert("Error getting data from your API. Check console for details.");
+            const data = await response.json();
+            console.log("Your API Response:", data);
+            return data;
+        } catch (error) {
+            console.error("Error calling your API:", error);
+            alert("An error occurred while calling your API. Check console for details.");
             return null;
         }
-
-        const data = await response.json();
-        console.log("Your API Response:", data); // Log the response
-        return data; // The parsed JSON data: { genre, tags, category }
-
-    } catch (error) {
-        console.error("Error calling your API:", error);
-        alert("An error occurred while calling your API. Check console for details.");
-        return null;
-    }
-}
-
-autoButton.innerText = "Auto";
-autoButton.onclick = async function () {
-    // Cache DOM elements
-    const titleInput = titleField.querySelector("input");
-    const urlInput = urlField.querySelector("input");
-    const descriptionTextarea = descriptionField.querySelector("textarea");
-    const imageUrlInput = imageUrlField.querySelector("input");
-    const genreInput = genreField.querySelector("input");
-    const categoryInput = categoryField.querySelector("input");
-    const tagsInput = tagsField.querySelector("input");
-
-    // Extract OpenGraph data
-    const metaTags = document.getElementsByTagName("meta");
-    const ogData = {};
-    for (const tag of metaTags) {
-        const property = tag.getAttribute("property");
-        if (property?.startsWith("og:")) {
-            ogData[property.replace("og:", "")] = tag.getAttribute("content");
-        }
     }
 
-    // Determine title
-    let title = ogData.title || document.querySelector("title")?.innerText ||
-                document.querySelector("h1")?.innerText ||
-                document.querySelector("h2")?.innerText || "";
-
-    // Determine image URL
-    let imageUrl = ogData.image ||
-                   document.querySelector("body")?.style.backgroundImage.slice(4, -1).replace(/['"]/g, "") ||
-                   document.querySelector("img")?.src || "";
-
-    // Populate fields
-    titleInput.value = title;
-    urlInput.value = window.location.href; // Set URL from current page
-    descriptionTextarea.value = ogData.description || ""; // Set description from OpenGraph
-    imageUrlInput.value = imageUrl;
-
-    // Display image preview if valid
-    if (imageUrl && isValidImageUrl(imageUrl)) {
-        imagePreview.src = imageUrl;
-        imagePreview.style.display = "block";
-    } else {
-        imagePreview.style.display = "none";
-    }
-
-    // Fetch Gemini data if title is available
-    if (title) {
-        try {
-            // Use values from input fields
-            const url = urlInput.value; // Get the value from the URL input field
-            const description = descriptionTextarea.value; // Get the value from the description textarea
-
-            // Call getGeminiData
-            const geminiData = await getGeminiData(title, url, description);
-
-            // Populate additional fields
-            if (geminiData) {
-                genreInput.value = geminiData.genre || "";
-                categoryInput.value = geminiData.category || "";
-                tagsInput.value = geminiData.tags || "";
+    let autoButton = document.createElement("button");
+    autoButton.innerText = "Auto";
+    autoButton.classList.add("action-button");
+    autoButton.onclick = async function () {
+        // Extract OpenGraph data
+        const metaTags = document.getElementsByTagName("meta");
+        const ogData = {};
+        for (const tag of metaTags) {
+            const property = tag.getAttribute("property");
+            if (property?.startsWith("og:")) {
+                ogData[property.replace("og:", "")] = tag.getAttribute("content");
             }
-        } catch (error) {
-            console.error("Error fetching Gemini data:", error);
-            alert("An error occurred while fetching additional data.");
         }
-    } else {
-        alert("Could not determine the title of the page.");
-    }
-};
 
+        // Determine title and image URL
+        let title = ogData.title || document.querySelector("title")?.innerText ||
+            document.querySelector("h1")?.innerText ||
+            document.querySelector("h2")?.innerText || "";
+        let imageUrl = ogData.image ||
+            document.querySelector("body")?.style.backgroundImage.slice(4, -1).replace(/['"]/g, "") ||
+            document.querySelector("img")?.src || "";
+
+        // Populate fields
+        titleInput.value = title;
+        urlInput.value = window.location.href;
+        descriptionTextarea.value = ogData.description || "";
+        imageUrlInput.value = imageUrl;
+
+        // Display image preview if valid
+        if (imageUrl && isValidImageUrl(imageUrl)) {
+            imagePreview.src = imageUrl;
+            imagePreview.style.display = "block";
+        } else {
+            imagePreview.style.display = "none";
+        }
+
+        // Fetch Gemini data if title is available
+        if (title) {
+            try {
+                const geminiData = await getGeminiData(title, urlInput.value, descriptionTextarea.value);
+                if (geminiData) {
+                    genreInput.value = geminiData.genre || "";
+                    categoryInput.value = geminiData.category || "";
+                    tagsInput.value = geminiData.tags || "";
+                }
+            } catch (error) {
+                console.error("Error fetching Gemini data:", error);
+                alert("An error occurred while fetching additional data.");
+            }
+        } else {
+            alert("Could not determine the title of the page.");
+        }
+    };
     buttonContainer.appendChild(autoButton);
+
     let showButton = document.createElement("button");
     showButton.innerText = "Show";
+    showButton.classList.add("action-button");
     showButton.onclick = function () {
         let newWindow = window.open("", "_blank");
         newWindow.document.write(
             "<html><head><title>Selected Content</title></head><body><pre>" +
             JSON.stringify(
                 {
-                    title: titleField.querySelector("input").value,
-                    url: urlField.querySelector("input").value,
-                    image: imageUrlField.querySelector("input").value,
-                    description: descriptionField.querySelector("textarea").value,
-                    content: contentField.querySelector("textarea").value,
-                    category: categoryField.querySelector("input").value,
-                    tags: tagsField
-                        .querySelector("input")
-                        .value.split(",")
-                        .map((tag) => tag.trim()),
-                    genre: genreField.querySelector("input").value, // Include genre
+                    title: titleInput.value,
+                    url: urlInput.value,
+                    image: imageUrlInput.value,
+                    description: descriptionTextarea.value,
+                    content: contentTextarea.value,
+                    category: categoryInput.value,
+                    tags: tagsInput.value.split(",").map((tag) => tag.trim()),
+                    genre: genreInput.value,
                 },
                 null,
                 2
@@ -213,75 +247,41 @@ autoButton.onclick = async function () {
         newWindow.document.close();
     };
     buttonContainer.appendChild(showButton);
+
     let closeButton = document.createElement("button");
     closeButton.innerText = "Close";
-closeButton.onclick = function () {
+    closeButton.classList.add("action-button");
+    closeButton.onclick = function () {
         container.remove();
     };
     buttonContainer.appendChild(closeButton);
 
-    function handleClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        let buttons = container.getElementsByTagName("button");
-        for (let button of buttons) if (button === event.target) return;
-        let clickedDiv = event.target.closest("div");
-        if (clickedDiv) {
-            let extractedContent = [],
-                textContent = clickedDiv.innerText.trim();
-            textContent && extractedContent.push("<p>" + textContent + "</p>");
-            let images = clickedDiv.getElementsByTagName("img");
-            for (let img of images)
-                img.src &&
-                    extractedContent.push(
-                        '<img src="' +
-                        img.src +
-                        '" alt="Image" style="max-width: 100%; height: auto;" />'
-                    );
-            let links = clickedDiv.getElementsByTagName("a");
-            for (let link of links)
-                link.href &&
-                    extractedContent.push(
-                        '<a href="' +
-                        link.href +
-                        '" target="_blank" style="color: blue; text-decoration: underline;">' +
-                        link.innerText +
-                        "</a>"
-                    );
-            let contentTextArea = contentField.querySelector("textarea"),
-                existingContent = contentTextArea.value.trim();
-            contentTextArea.value = existingContent
-                ? existingContent + "\n" + extractedContent.join("\n")
-                : extractedContent.join("\n");
+    async function sendDataToGitHub(data) {
+        const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-to-github";
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                alert(responseData.message);
+            } else {
+                const errorData = await response.json();
+                console.error("Error sending data to GitHub:", errorData);
+                alert("Error sending data to GitHub. Check console for details.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred. Check console for details.");
         }
     }
-  async function sendDataToGitHub(data) {
-    const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-to-github"; // Your new endpoint
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (response.ok) {
-            const responseData = await response.json();
-            alert(responseData.message); // "Data sent to GitHub successfully!"
-        } else {
-            const errorData = await response.json();
-            console.error("Error sending data to GitHub:", errorData);
-            alert("Error sending data to GitHub. Check console for details.");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred. Check console for details.");
-    }
-}
-
-    // Add fields to the container in your desired order:
+    // Add fields to the container
     container.appendChild(titleField);
     container.appendChild(urlField);
     container.appendChild(imageUrlField);
@@ -289,7 +289,7 @@ closeButton.onclick = function () {
     container.appendChild(contentField);
     container.appendChild(categoryField);
     container.appendChild(tagsField);
-    container.appendChild(genreField); // Add the genre field here
+    container.appendChild(genreField);
 
     document.body.appendChild(container);
     container.style.display = "block";
