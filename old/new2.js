@@ -72,16 +72,26 @@ function createField(label, type = "text") {
 
         .action-button {
             padding: 5px 10px;
-            background-color: #4CAF50; /* Example - you can customize */
+            background-color: #4CAF50; 
             color: white;
             border: none;
             cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                width: 90%;
+                height: 90%;
+                top: 5%;
+                right: 5%; 
+                overflow-y: auto; 
+            }
         }
     `;
   document.head.appendChild(style);
 
   let container = document.createElement("div");
-  container.id = "my-advanced-helper-div"; // Main container now has an ID
+  container.id = "my-advanced-helper-div";
   container.classList.add("main-container");
   document.body.appendChild(container);
   // Image preview
