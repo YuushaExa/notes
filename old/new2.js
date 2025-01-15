@@ -20,7 +20,7 @@ function createField(label, type = "text") {
 !function () {
   let style = document.createElement("style");
   style.id = "my-advanced-helper-css";
-  style.innerHTML = `
+  style.textContent = `
         .main-container {
             position: fixed;
             top: 10px;
