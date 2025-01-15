@@ -99,6 +99,9 @@ function createField(label, type = "text") {
                 overflow-y: auto; 
             }
         }
+.review-button {
+  margin-left: 5px;
+}
     `;
   document.head.appendChild(style);
 
@@ -166,7 +169,11 @@ function createField(label, type = "text") {
   let images = [];
 
   function updateImagePreview() {
-    if (images.length > 0 && currentImageIndex >= 0 && currentImageIndex < images.length) {
+    if (
+      images.length > 0 &&
+      currentImageIndex >= 0 &&
+      currentImageIndex < images.length
+    ) {
       imageUrlInput.value = images[currentImageIndex];
       imagePreview.src = images[currentImageIndex];
       imagePreview.style.display = "block";
@@ -298,6 +305,34 @@ function createField(label, type = "text") {
   };
   buttonContainer.appendChild(autoButton);
 
+  // Review button
+  let reviewButton = document.createElement("button");
+  reviewButton.innerText = "Review";
+  reviewButton.classList.add("action-button", "review-button");
+  reviewButton.onclick = async function () {
+    // Extract text content from body (up to 2000 characters)
+    let textContent = document.body.innerText.slice(0, 2000);
+
+    // Send text content to backend API for review
+    try {
+      const reviewData = await sendReviewDataToBackend(
+        textContent,
+        urlInput.value
+      );
+
+      if (reviewData) {
+        // Handle review data as needed (e.g., display results, update fields)
+        console.log("Review data:", reviewData);
+        // Example: Populate description field with reviewed text
+        descriptionTextarea.value = reviewData.reviewedText || "";
+      }
+    } catch (error) {
+      console.error("Error sending review data:", error);
+      alert("An error occurred while sending data for review.");
+    }
+  };
+  buttonContainer.appendChild(reviewButton); // Add review button after auto button
+
   // Show button
   let showButton = document.createElement("button");
   showButton.innerText = "Show";
@@ -405,6 +440,41 @@ function createField(label, type = "text") {
     } catch (error) {
       console.error("Error:", error);
       alert("An error occurred. Check console for details.");
+    }
+  }
+
+  async function sendReviewDataToBackend(text, url) {
+    const apiUrl = "https://chatai-flame-eta.vercel.app/api/review"; // Replace with your actual API endpoint
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text,
+          url: url,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error from review API:", errorData);
+        alert(
+          "Error getting data from review API. Check console for details."
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      console.log("Review API Response:", data);
+      return data;
+    } catch (error) {
+      console.error("Error calling review API:", error);
+      alert(
+        "An error occurred while calling the review API. Check console for details."
+      );
+      return null;
     }
   }
 
