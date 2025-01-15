@@ -4,7 +4,7 @@ function createField(label, type = "text") {
 
   let labelElement = document.createElement("label");
   labelElement.innerText = label;
-  labelElement.classList.add("field-label");
+  labelElement.classList.add("field-label-" + label.replace(/\s+/g, ""));
 
   let inputElement = document.createElement(
     "textarea" === type ? "textarea" : "input"
@@ -42,14 +42,14 @@ function createField(label, type = "text") {
             margin-bottom: 10px;
         }
 
-        .field-label {
+        [class^="field-label-"] {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
 
         .field-input {
-            width: 100%;
+            width: calc(100% - 22px);
             padding: 5px;
             border: 1px solid #ccc;
             box-sizing: border-box;
@@ -77,7 +77,19 @@ function createField(label, type = "text") {
             border: none;
             cursor: pointer;
         }
-
+    .image-nav-buttons {
+      display: flex;
+      flex-direction: column;
+      margin-left: 5px;
+    }
+    .image-nav-button {
+      margin-bottom: 3px;
+      padding: 2px 6px;
+      font-size: 12px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
         @media (max-width: 768px) {
             .main-container {
                 width: 90%;
@@ -94,6 +106,7 @@ function createField(label, type = "text") {
   container.id = "my-advanced-helper-div";
   container.classList.add("main-container");
   document.body.appendChild(container);
+
   // Image preview
   let imagePreview = document.createElement("img");
   imagePreview.classList.add("image-preview");
@@ -108,8 +121,24 @@ function createField(label, type = "text") {
     urlInput = urlField.querySelector("input");
   container.appendChild(urlField);
 
+  // Image URL field with navigation buttons
   let imageUrlField = createField("Image URL"),
     imageUrlInput = imageUrlField.querySelector("input");
+
+  let imageNavButtons = document.createElement("div");
+  imageNavButtons.classList.add("image-nav-buttons");
+
+  let prevImageButton = document.createElement("button"),
+    nextImageButton = document.createElement("button");
+  prevImageButton.innerText = "←";
+  nextImageButton.innerText = "→";
+  prevImageButton.classList.add("image-nav-button");
+  nextImageButton.classList.add("image-nav-button");
+
+  imageNavButtons.appendChild(prevImageButton);
+  imageNavButtons.appendChild(nextImageButton);
+
+  imageUrlField.appendChild(imageNavButtons);
   container.appendChild(imageUrlField);
 
   let descriptionField = createField("Description", "textarea"),
@@ -131,6 +160,30 @@ function createField(label, type = "text") {
   let genreField = createField("Genre"),
     genreInput = genreField.querySelector("input");
   container.appendChild(genreField);
+
+  // Image navigation logic
+  let currentImageIndex = 0;
+  let images = [];
+
+  function updateImagePreview() {
+    if (images.length > 0 && currentImageIndex >= 0 && currentImageIndex < images.length) {
+      imageUrlInput.value = images[currentImageIndex];
+      imagePreview.src = images[currentImageIndex];
+      imagePreview.style.display = "block";
+    } else {
+      imagePreview.style.display = "none";
+    }
+  }
+
+  prevImageButton.onclick = function () {
+    currentImageIndex = Math.max(0, currentImageIndex - 1);
+    updateImagePreview();
+  };
+
+  nextImageButton.onclick = function () {
+    currentImageIndex = Math.min(images.length - 1, currentImageIndex + 1);
+    updateImagePreview();
+  };
 
   imageUrlInput.addEventListener("input", function () {
     let imageUrl = this.value;
@@ -187,22 +240,32 @@ function createField(label, type = "text") {
       document.querySelector("h1")?.innerText ||
       document.querySelector("h2")?.innerText ||
       "";
-     let imageUrl = ogData.image;
+    let imageUrl = ogData.image;
     let url = window.location.href;
 
     // YouTube-specific image handling
     if (url.includes("youtube.com/watch")) {
       const videoId = url.split("v=")[1].split("&")[0];
       imageUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-    } else if (!imageUrl) {
-      imageUrl =
-        document
-          .querySelector("body")
-          ?.style.backgroundImage.slice(4, -1)
-          .replace(/['"]/g, "") ||
-        document.querySelector("img")?.src ||
-        "";
     }
+
+    // Image extraction
+    images = [];
+    currentImageIndex = 0;
+    if (imageUrl) {
+      images.push(imageUrl);
+    }
+    const pageImages = document.querySelectorAll("img");
+    pageImages.forEach((img) => {
+      if (
+        img.src &&
+        isValidImageUrl(img.src) &&
+        !images.includes(img.src)
+      ) {
+        images.push(img.src);
+      }
+    });
+
     // Populate fields
     titleInput.value = title;
     urlInput.value = window.location.href;
@@ -210,12 +273,7 @@ function createField(label, type = "text") {
     imageUrlInput.value = imageUrl;
 
     // Display image preview if valid
-    if (imageUrl && isValidImageUrl(imageUrl)) {
-      imagePreview.src = imageUrl;
-      imagePreview.style.display = "block";
-    } else {
-      imagePreview.style.display = "none";
-    }
+    updateImagePreview();
 
     // Fetch Gemini data if title is available
     if (title) {
