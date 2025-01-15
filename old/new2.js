@@ -177,15 +177,22 @@ function createField(label, type = "text") {
       document.querySelector("h1")?.innerText ||
       document.querySelector("h2")?.innerText ||
       "";
-    let imageUrl =
-      ogData.image ||
-      document
-        .querySelector("body")
-        ?.style.backgroundImage.slice(4, -1)
-        .replace(/['"]/g, "") ||
-      document.querySelector("img")?.src ||
-      "";
+     let imageUrl = ogData.image;
+    let url = window.location.href;
 
+    // YouTube-specific image handling
+    if (url.includes("youtube.com/watch")) {
+      const videoId = url.split("v=")[1].split("&")[0];
+      imageUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+    } else if (!imageUrl) {
+      imageUrl =
+        document
+          .querySelector("body")
+          ?.style.backgroundImage.slice(4, -1)
+          .replace(/['"]/g, "") ||
+        document.querySelector("img")?.src ||
+        "";
+    }
     // Populate fields
     titleInput.value = title;
     urlInput.value = window.location.href;
