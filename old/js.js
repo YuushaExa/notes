@@ -354,7 +354,7 @@ let divs = doc.querySelectorAll("div");
     .replace(/([a-zA-Z0-9_-]+(\.(jpg|png|webm|jpeg|gif)))/gi, "") // Remove image names
     .replace(/\s+/g, " ") // Replace multiple spaces with single spaces
     .trim()
-    .slice(0, 500); // Limit to 500 characters
+    .slice(0, 2000); // Limit to 500 characters
 
   // Send text content to backend API for review
   try {
