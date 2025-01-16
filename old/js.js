@@ -64,7 +64,7 @@ function createField(label, type = "text") {
     border-radius: 7px;
         }
 
-        .button-container {
+        .button-container1 {
             display: flex;
             justify-content: space-between;
             margin-top: 10px;
@@ -204,7 +204,7 @@ function createField(label, type = "text") {
 
   // Button container
   let buttonContainer = document.createElement("div");
-  buttonContainer.classList.add("button-container");
+  buttonContainer.classList.add("button-container1");
   container.appendChild(buttonContainer);
 
   // Send button
