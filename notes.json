@@ -504,5 +504,22 @@
       "av"
     ],
     "genre": "av"
+  },
+  {
+    "title": "https://gohugo.io/functions/crypto/md5/{{ md5 \"Hello world\" }} → 3e25960a79dbc - Pastebin.com",
+    "url": "https://pastebin.com/hk96Wgnu#tjcF13Dy",
+    "image": "https://pastebin.com/i/facebook.png",
+    "description": "Pastebin.com is the number one paste tool since 2002. Pastebin is a website where you can store text online for a set period of time.",
+    "content": "",
+    "category": "Web Development",
+    "tags": [
+      "hugo",
+      "functions",
+      "crypto",
+      "md5",
+      "code example",
+      "pastebin"
+    ],
+    "genre": "Technical Documentation"
   }
 ]
