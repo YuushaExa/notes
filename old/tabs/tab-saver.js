@@ -4,7 +4,8 @@ document.getElementById('save-tabs').addEventListener('click', async () => {
   const tabs = await chrome.tabs.query({});
   savedTabs = tabs.map(tab => ({
     title: tab.title,
-    url: tab.url
+    url: tab.url,
+    lastAccessed: new Date(tab.lastAccessed).toLocaleString() // Convert to a readable date/time format
   }));
 
   // Display saved tabs
@@ -14,7 +15,8 @@ document.getElementById('save-tabs').addEventListener('click', async () => {
       (tab, index) => `
       <div class="tab-item">
         <strong>${index + 1}. ${tab.title}</strong><br>
-        <a href="${tab.url}" target="_blank">${tab.url}</a>
+        <a href="${tab.url}" target="_blank">${tab.url}</a><br>
+        <em>Opened: ${tab.lastAccessed}</em>
       </div>
     `
     )
@@ -29,7 +31,7 @@ document.getElementById('send-to-github').addEventListener('click', async () => 
     return;
   }
 
-  const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-to-github";
+  const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-tabs-to-github";
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
