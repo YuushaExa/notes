@@ -4,8 +4,7 @@ document.getElementById('save-tabs').addEventListener('click', async () => {
   const tabs = await chrome.tabs.query({});
   savedTabs = tabs.map(tab => ({
     title: tab.title,
-    url: tab.url,
-    lastAccessed: new Date(tab.lastAccessed).toLocaleString() // Convert to a readable date/time format
+    url: tab.url
   }));
 
   // Display saved tabs
@@ -15,8 +14,7 @@ document.getElementById('save-tabs').addEventListener('click', async () => {
       (tab, index) => `
       <div class="tab-item">
         <strong>${index + 1}. ${tab.title}</strong><br>
-        <a href="${tab.url}" target="_blank">${tab.url}</a><br>
-        <em>Opened: ${tab.lastAccessed}</em>
+        <a href="${tab.url}" target="_blank">${tab.url}</a>
       </div>
     `
     )
