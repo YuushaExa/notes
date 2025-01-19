@@ -557,5 +557,21 @@
       "Paranormal"
     ],
     "genre": "Urban Fantasy"
+  },
+  {
+    "title": "Harbor - A browser extension for advanced tab management.",
+    "url": "https://getharbor.xyz/#features",
+    "image": "https://getharbor.xyz/x-card.png",
+    "description": "Harbor is a browser extension that helps you organize tabs, navigate seamlessly, and pick up right where you left off.",
+    "content": "",
+    "category": "Browser Tools",
+    "tags": [
+      "browser extension",
+      "tab management",
+      "productivity",
+      "organization",
+      "web browsing"
+    ],
+    "genre": "Software"
   }
 ]
