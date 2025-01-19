@@ -1,4 +1,3 @@
-// Background script (if needed)
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('Tab Saver extension installed.');
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("tab-saver.html") });
 });
