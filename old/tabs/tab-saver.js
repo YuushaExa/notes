@@ -6,6 +6,20 @@ document.getElementById('save-tabs').addEventListener('click', async () => {
     title: tab.title,
     url: tab.url
   }));
+
+  // Display saved tabs
+  const tabsList = document.getElementById('tabs-list');
+  tabsList.innerHTML = savedTabs
+    .map(
+      (tab, index) => `
+      <div class="tab-item">
+        <strong>${index + 1}. ${tab.title}</strong><br>
+        <a href="${tab.url}" target="_blank">${tab.url}</a>
+      </div>
+    `
+    )
+    .join('');
+
   alert(`${savedTabs.length} tabs saved!`);
 });
 
@@ -15,7 +29,7 @@ document.getElementById('send-to-github').addEventListener('click', async () => 
     return;
   }
 
-  const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-tabs-to-github";
+  const apiUrl = "https://chatai-flame-eta.vercel.app/api/send-to-github";
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
