@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "country": "US",
+    "device": "Desktop",
+    "browser": "undefined .",
+    "timestamp": "2025-01-28T22:34:56.569Z",
+    "url": "imager-psi.vercel.app/track",
+    "referrer": "https://yuushaexa.github.io/"
+  }
+]
