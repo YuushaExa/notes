@@ -2238,5 +2238,17 @@
       "title": "Новая вкладка",
       "url": "chrome://newtab/"
     }
-  ]
+  ],
+  {
+    "title": "",
+    "url": "",
+    "image": "",
+    "description": "",
+    "content": "",
+    "category": "",
+    "tags": [
+      ""
+    ],
+    "genre": ""
+  }
 ]
